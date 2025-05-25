@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1095160713979",
+    "project_id": "bitebudget-grq2y",
+    "storage_bucket": "bitebudget-grq2y.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1095160713979:android:b9c2b295bf0e53c16fd65e",
+        "android_client_info": {
+          "package_name": "com.example.bitebudget"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCIFghG9eJPs0-k2Q9_fL41vLB9e6XYuEA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
