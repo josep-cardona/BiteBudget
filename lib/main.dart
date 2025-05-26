@@ -1,5 +1,5 @@
 import 'package:bitebudget/firebase_options.dart';
-import 'package:bitebudget/pages/home.dart';
+import 'package:bitebudget/pages/welcome_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(fontFamily: 'Inter'),
-      home: HomePage(),
+      home: const WelcomePage(),
     );
   }
 }
