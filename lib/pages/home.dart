@@ -16,12 +16,9 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
 
   late final DatabaseService_Recipe _databaseService;
-  late Future<List<Recipe>> _recipesFuture; // This list will hold all fetched recipes
-  bool _isLoading = true; // Added loading state
-  String? _errorMessage; // Added error message state
+  late Future<List<Recipe>> _featuredRecipes; // This list will hold all fetched recipes
 
-
-  final List<String> _recipeIdsToFetch = [
+  final List<String> _featuresRecipeIdsToFetch = [
     'x5BCf2fLp4UTd2RkPE9y',
   ];
 
@@ -30,7 +27,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _databaseService = DatabaseService_Recipe();
     // Fetch the first recipe when the page loads
-    _recipesFuture=_databaseService.getRecipesById(_recipeIdsToFetch);
+    _featuredRecipes=_databaseService.getRandomRecipes(1);
   }
   @override
   Widget build(BuildContext context) {
@@ -39,8 +36,7 @@ class _HomePageState extends State<HomePage> {
 
       //Build your entire screen content within the body
       body: SafeArea( // Use SafeArea to avoid content overlapping status bar/notches
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // Align children to the start (left)
+        child: ListView( // Align children to the start (left)
           children: [
             SizedBox(height: 20.0),
             welcomeDaytime(),
@@ -61,55 +57,59 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             //Fetch featureds
-            FutureBuilder<List<Recipe>>(
-              future: _recipesFuture, 
-              builder: (context, snapshot){
-                // --- Connection State Handling ---
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  // While the Future is still running (fetching data)
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                // --- Error Handling ---
-                if (snapshot.hasError) {
-                  // If the Future completed with an error
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
-
-                // --- Data Available ---
-                if (snapshot.hasData) {
-                  // If the Future completed successfully and has data
-                  final List<Recipe> recipes = snapshot.data!;
-
-                  if (recipes.isEmpty) {
-                    return const Center(child: Text('No recipes found.'));
-                  }
-                  return Container(
-                    height: 172,
-                    child: ListView.separated(
-                      itemCount: recipes.length,
-                      scrollDirection: Axis.horizontal,
-                      padding: EdgeInsets.only(
-                        left: 16,
-                        right: 16
-                      ),
-                      separatorBuilder:(context, index) => SizedBox(width: 16,),
-                      itemBuilder:(context, index) {
-                        //Container for featured card
-                        
-                        return featuredRecipeCard(recipes[index]);
-                      },
-                    ),
-                  );
-                }
-                // Fallback case (should ideally not be reached if conditions are exhaustive)
-                return const Center(child: Text('Unexpected state.'));
-              },
-            ),
+            featuredMeals(),
           ],
         ),
       ),
     );
+  }
+
+  FutureBuilder<List<Recipe>> featuredMeals() {
+    return FutureBuilder<List<Recipe>>(
+            future: _featuredRecipes, 
+            builder: (context, snapshot){
+              // --- Connection State Handling ---
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                // While the Future is still running (fetching data)
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              // --- Error Handling ---
+              if (snapshot.hasError) {
+                // If the Future completed with an error
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+
+              // --- Data Available ---
+              if (snapshot.hasData) {
+                // If the Future completed successfully and has data
+                final List<Recipe> featuredRecipes = snapshot.data!;
+
+                if (featuredRecipes.isEmpty) {
+                  return const Center(child: Text('No recipes found.'));
+                }
+                return Container(
+                  height: 172,
+                  child: ListView.separated(
+                    itemCount: featuredRecipes.length,
+                    scrollDirection: Axis.horizontal,
+                    padding: EdgeInsets.only(
+                      left: 16,
+                      right: 16
+                    ),
+                    separatorBuilder:(context, index) => SizedBox(width: 16,),
+                    itemBuilder:(context, index) {
+                      //Container for featured card
+                      
+                      return featuredRecipeCard(featuredRecipes[index]);
+                    },
+                  ),
+                );
+              }
+              // Fallback case (should ideally not be reached if conditions are exhaustive)
+              return const Center(child: Text('Unexpected state.'));
+            },
+          );
   }
 
   Container featuredRecipeCard(Recipe recipe){

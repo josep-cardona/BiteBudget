@@ -1,4 +1,6 @@
 
+import 'dart:math';
+
 import 'package:bitebudget/models/recipe.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -60,6 +62,45 @@ class DatabaseService_Recipe {
 
   void addRecipe(Recipe recipe) async{
     _recipesRef.add(recipe);
+  }
+
+  Future<List<Recipe>> getRandomRecipes(int count) async {
+    try {
+      final querySnapshot = await _recipesRef.get();
+      final allRecipes = querySnapshot.docs.map((doc) => doc.data() as Recipe).toList();
+
+      if (allRecipes.isEmpty) {
+        return []; // No recipes available
+      }
+
+      // If the requested count is greater than or equal to the total number of recipes,
+      // just shuffle and return all of them.
+      if (count >= allRecipes.length) {
+        allRecipes.shuffle(Random()); // Shuffle with a new Random instance for better randomness
+        return allRecipes;
+      }
+
+      // Otherwise, select a random subset.
+      final random = Random();
+      final List<Recipe> randomRecipes = [];
+      final List<int> selectedIndices = []; // To keep track of already selected indices
+
+      while (randomRecipes.length < count) {
+        int randomIndex = random.nextInt(allRecipes.length);
+        if (!selectedIndices.contains(randomIndex)) {
+          randomRecipes.add(allRecipes[randomIndex]);
+          selectedIndices.add(randomIndex);
+        }
+      }
+      return randomRecipes;
+    } on FirebaseException catch (e) {
+      print("Error fetching random recipes: ${e.message}");
+      // You might want to throw the error or return an empty list based on your error handling strategy
+      return [];
+    } catch (e) {
+      print("An unexpected error occurred: $e");
+      return [];
+    }
   }
 
 
