@@ -107,6 +107,11 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             popularMeals(),
+            Padding(
+              padding: EdgeInsets.only(
+                bottom: 20
+              ),
+            )
           ],
         ),
       ),
