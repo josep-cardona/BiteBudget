@@ -13,15 +13,34 @@ class LayoutScaffold extends StatelessWidget{
   @override
   Widget build(BuildContext context) => Scaffold(
     body: navigationShell,
-    bottomNavigationBar: NavigationBar(
-      selectedIndex: navigationShell.currentIndex,
-      onDestinationSelected: navigationShell.goBranch,
-      indicatorColor: Colors.blue,
-      destinations: destinations
-      .map((destination)=> NavigationDestination(
-        icon: Icon(destination.icon), 
-      label: destination.label,
-      selectedIcon: Icon(destination.icon,color: Colors.white,),)).toList(),
+    bottomNavigationBar: Container(
+      decoration: const BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: Colors.grey, // subtle gray color
+            width: 0.5,         // very thin border
+          ),
+        ),
+      ),
+      child: NavigationBarTheme(
+        data: NavigationBarThemeData(
+          backgroundColor: Colors.white,
+          indicatorColor: Colors.transparent,
+          overlayColor: MaterialStateProperty.all(Colors.transparent),
+          labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+        ),
+        child: NavigationBar(
+          selectedIndex: navigationShell.currentIndex,
+          onDestinationSelected: navigationShell.goBranch,
+          destinations: destinations.map(
+            (destination) => NavigationDestination(
+              icon: Icon(destination.icon, color: destination.color),
+              selectedIcon: Icon(destination.icon, color: Colors.black),
+              label: destination.label,
+            ),
+          ).toList(),
+        ),
+      ),
     ),
   );
 }
