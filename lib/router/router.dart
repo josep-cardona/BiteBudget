@@ -11,7 +11,7 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
 final router = GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: Routes.buttonPage,
+    initialLocation: Routes.homePage,
     routes: [
         GoRoute(path: Routes.buttonPage, builder: (context, state) => const TestButtonPage()),
         StatefulShellRoute.indexedStack(
@@ -39,6 +39,14 @@ final router = GoRouter(
                     routes: [
                             GoRoute(
                             path: Routes.shopPage,
+                            builder: (context, state) => const TestPage(),
+                        ),
+                    ],
+                ),
+                StatefulShellBranch(
+                    routes: [
+                            GoRoute(
+                            path: Routes.profilePage,
                             builder: (context, state) => const TestPage(),
                         ),
                     ],
