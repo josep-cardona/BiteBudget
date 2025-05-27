@@ -29,10 +29,10 @@ class Recipe {
     final data = snapshot.data();
     return Recipe(
       name: data?['name'] as String,
-      calories: data?['calories'] as double,
-      protein: data?['protein'] as double,
-      price: data?['price'] as double,
-      time: data?['time'] as double,
+      calories: (data?['calories'] as num).toDouble(),
+      protein: (data?['protein'] as num).toDouble(),
+      price: (data?['price'] as num).toDouble(),
+      time: (data?['time'] as num).toDouble(),
       diet: data?['diet'] as String,
       // Handling Lists (Arrays):
       // Cast to List<dynamic> first, then map to the desired type.
