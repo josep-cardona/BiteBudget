@@ -2,6 +2,9 @@ import 'package:bitebudget/models/recipe.dart';
 import 'package:bitebudget/services/database_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 
 
@@ -24,6 +27,21 @@ class _HomePageState extends State<HomePage> {
   final List<String> _recipeIdsToFetch = [
     'x5BCf2fLp4UTd2RkPE9y',
   ];
+
+  Future<String?> _getUserName() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return null;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    if (doc.exists) {
+      return doc.data()?['name'] as String?;
+    }
+    return null;
+  }
 
   @override
   void initState() {
@@ -190,22 +208,50 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Padding welcomeName() {
-    return Padding(
-            padding: const EdgeInsets.only(
-              left: 16.0,
-              right: 16.0,
+  Widget welcomeName() {
+  return FutureBuilder<String?>(
+    future: _getUserName(),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: SizedBox(
+            height: 32,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: CircularProgressIndicator(strokeWidth: 2),
             ),
-            child: const Text(
-              'Alex Garcia',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 24,
-                fontVariations: [FontVariation('wght', 800),],
-              ),
+          ),
+        );
+      }
+      if (snapshot.hasError) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(
+            'Error loading name',
+            style: const TextStyle(
+              color: Colors.red,
+              fontSize: 24,
+              fontVariations: [FontVariation('wght', 800)],
             ),
-          );
-  }
+          ),
+        );
+      }
+      final name = snapshot.data ?? '';
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Text(
+          name.isNotEmpty ? name : 'Welcome!',
+          style: const TextStyle(
+            color: Colors.black,
+            fontSize: 24,
+            fontVariations: [FontVariation('wght', 800)],
+          ),
+        ),
+      );
+    },
+  );
+}
 
   Padding welcomeDaytime() {
     return Padding(

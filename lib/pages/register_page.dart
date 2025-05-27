@@ -18,7 +18,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-  clientId: '***REMOVED***-1o7fp51prdpbs1iululus2iadv0j9dko.apps.googleusercontent.com', 
+  //clientId: '***REMOVED***-1o7fp51prdpbs1iululus2iadv0j9dko.apps.googleusercontent.com', 
   scopes: ['email'],
   );
 

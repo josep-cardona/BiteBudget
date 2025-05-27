@@ -18,7 +18,7 @@ class WelcomePage extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(24),
                 child: Image.asset(
-                  'assets/icons/welcome.jpg', // Add your image to assets!
+                  'assets/icons/welcome.jpg',
                   width: 320,
                   height: 240,
                   fit: BoxFit.cover,

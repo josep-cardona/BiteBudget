@@ -41,6 +41,13 @@ dependencies:
   flutter_social_button: ^1.1.6+1
   google_sign_in: ^6.2.1
   sign_in_with_apple: ^7.0.1
+  image_picker: ^1.0.7
+  firebase_storage: ^12.4.6
+  google_fonts: ^6.2.1
+
+
+
+
 
 dev_dependencies:
   flutter_test:
