@@ -103,5 +103,55 @@ class DatabaseService_Recipe {
     }
   }
 
+  Future<List<Recipe>> getFilteredRecipes({
+    List<String>? ids, // Optional list of document IDs
+    String? diet, // Optional diet filter
+    double? minCalories, // Optional minimum calories filter
+    double? maxCalories, // Optional maximum calories filter
+    List<String>? types, // Optional list of recipe types to filter by
+    // Add other optional filters as needed (e.g., minPrice, maxTime, ingredients)
+  }) async {
+    try {
+      Query query = _recipesRef; 
+
+      if (diet != null && diet.isNotEmpty) {
+        query = query.where('diet', isEqualTo: diet);
+      }
+
+      if (minCalories != null) {
+        query = query.where('calories', isGreaterThanOrEqualTo: minCalories);
+      }
+
+      
+      if (maxCalories != null) {
+        // Make sure maxCalories is not less than minCalories if both are provided
+        if (minCalories != null && maxCalories < minCalories) {
+          print('Warning: maxCalories is less than minCalories. This query will likely return no results.');
+        }
+        query = query.where('calories', isLessThanOrEqualTo: maxCalories);
+      }
+
+      if (types != null && types.isNotEmpty) {
+        // Firestore allows array-contains-any for up to 10 items.
+        if (types.length <= 10) {
+            query = query.where('type', arrayContainsAny: types);
+        } else {
+            print('Warning: Filtering by more than 10 types is not supported in a single arrayContainsAny query.');
+            // You'd need to do multiple queries or reconsider the filtering approach.
+            return [];
+        }
+      }
+
+      final querySnapshot = await query.get();
+
+      return querySnapshot.docs.map((doc) => doc.data() as Recipe).toList();
+    } catch (e) {
+      print('Error getting recipes: $e');
+      return []; // Return an empty list on error
+    }
+
+  }
+  
+
 
 }
