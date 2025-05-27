@@ -1,6 +1,7 @@
 
 import 'package:bitebudget/layout_scaffold.dart';
 import 'package:bitebudget/pages/home.dart';
+import 'package:bitebudget/pages/test_button_page.dart';
 import 'package:bitebudget/pages/test_page.dart';
 import 'package:bitebudget/router/routes.dart';
 import 'package:flutter/material.dart';
@@ -10,8 +11,9 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
 final router = GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: Routes.homePage,
+    initialLocation: Routes.buttonPage,
     routes: [
+        GoRoute(path: Routes.buttonPage, builder: (context, state) => const TestButtonPage()),
         StatefulShellRoute.indexedStack(
             builder: (context, state, navigationShell) => LayoutScaffold(
                 navigationShell: navigationShell,
