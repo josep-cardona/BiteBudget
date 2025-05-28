@@ -1,7 +1,5 @@
-import 'package:bitebudget/router/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:flutter_social_button/flutter_social_button.dart';
@@ -43,7 +41,7 @@ class _LoginPageState extends State<LoginPage> {
           password: _passwordController.text.trim(),
         );
         if (mounted) {
-          GoRouter.of(context).go(Routes.homePage);
+          Navigator.pushReplacementNamed(context, '/home');
         }
       } on FirebaseAuthException catch (e) {
         _showError(e.message ?? 'Login failed');
@@ -66,7 +64,10 @@ class _LoginPageState extends State<LoginPage> {
 
       await FirebaseAuth.instance.signInWithCredential(credential);
       if (mounted) {
-        GoRouter.of(context).go(Routes.homePage);
+        Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
       }
     } catch (e) {
       _showError('Google sign-in failed: $e');
@@ -89,7 +90,7 @@ class _LoginPageState extends State<LoginPage> {
 
       await FirebaseAuth.instance.signInWithCredential(credential);
       if (mounted) {
-        GoRouter.of(context).go(Routes.homePage);
+        Navigator.pushReplacementNamed(context, '/home');
       }
     } catch (e) {
       _showError('Apple sign-in failed: $e');
