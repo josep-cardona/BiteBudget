@@ -1,3 +1,4 @@
+import 'package:bitebudget/pages/account_page.dart';
 import 'package:bitebudget/firebase_options.dart';
 
 import 'package:bitebudget/pages/welcome_page.dart';
