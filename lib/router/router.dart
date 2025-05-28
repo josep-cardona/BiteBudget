@@ -1,6 +1,7 @@
 
 import 'package:bitebudget/layout_scaffold.dart';
 import 'package:bitebudget/pages/home.dart';
+import 'package:bitebudget/pages/recipe_page.dart';
 import 'package:bitebudget/pages/test_button_page.dart';
 import 'package:bitebudget/pages/test_page.dart';
 import 'package:bitebudget/pages/welcome_page.dart';
@@ -33,7 +34,7 @@ final router = GoRouter(
                     routes: [
                             GoRoute(
                             path: Routes.calendarPage,
-                            builder: (context, state) => const TestPage(),
+                            builder: (context, state) => const RecipePage(),
                         ),
                     ],
                 ),
