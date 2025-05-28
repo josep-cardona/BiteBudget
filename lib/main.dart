@@ -31,7 +31,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(fontFamily: 'Inter'),
-      
+
+      home: const WelcomePage(),
       routerConfig: router,
 
     );

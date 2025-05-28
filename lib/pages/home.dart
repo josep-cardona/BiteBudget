@@ -24,8 +24,6 @@ class _HomePageState extends State<HomePage> {
   late Future<List<Recipe>> _featuredRecipes; // This list will hold all fetched recipes
   late Future<List<Recipe>> _popularRecipes; 
   List<String> current_category = ['Breakfast'];
-  Map<String, dynamic>? _cachedUserData;
-
 
 
 
@@ -33,9 +31,7 @@ class _HomePageState extends State<HomePage> {
     'x5BCf2fLp4UTd2RkPE9y',
   ];
 
-  Future<Map<String, dynamic>?> getUser() async {
-    if (_cachedUserData != null) return _cachedUserData;
-
+  Future<String?> _getUserName() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return null;
 
@@ -45,28 +41,15 @@ class _HomePageState extends State<HomePage> {
         .get();
 
     if (doc.exists) {
-      _cachedUserData = doc.data();
-      return _cachedUserData;
+      return doc.data()?['name'] as String?;
     }
     return null;
   }
-  Future<String?> _getUserName(Map<String, dynamic>? userData) async {
-    final userData = await getUser();
-    if (userData == null) return null;
-
-    final name = userData['name'] as String?;
-    final surname = userData['surname'] as String?;
-    return (name != null && surname != null) ? '$name $surname' : null;
-  }
-
-
-
 
   @override
   void initState() {
     super.initState();
     _databaseService = DatabaseService_Recipe();
-    getUser();  // only runs once
     // Fetch the first recipe when the page loads
     _featuredRecipes=_databaseService.getRandomRecipes(2);
     _popularRecipes=_databaseService.getFilteredRecipes(types: current_category);
@@ -75,11 +58,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onCategorySelected(String category) {
-    setState(() {
-      current_category = [category];
-      _popularRecipes = _databaseService.getFilteredRecipes(types: current_category);
-    });
-  }
+  setState(() {
+    current_category = [category];
+    _popularRecipes = _databaseService.getFilteredRecipes(types: current_category);
+  });
+}
 
   @override
   Widget build(BuildContext context) {
@@ -549,7 +532,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget welcomeName() {
   return FutureBuilder<String?>(
-    future: _getUserName(_cachedUserData),
+    future: _getUserName(),
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
         return const Padding(
@@ -558,6 +541,7 @@ class _HomePageState extends State<HomePage> {
             height: 32,
             child: Align(
               alignment: Alignment.centerLeft,
+              child: CircularProgressIndicator(strokeWidth: 2),
             ),
           ),
         );
