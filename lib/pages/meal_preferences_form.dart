@@ -64,7 +64,7 @@ class _MealPreferencesFormState extends State<MealPreferencesForm> {
         'mealPreferencesCompleted': true,
       }, SetOptions(merge: true));
 
-      // Navigate to home
+      // Navigate to home or next screen
       if (mounted) {
         GoRouter.of(context).go(Routes.homePage);
       }
