@@ -1,7 +1,9 @@
 import 'package:bitebudget/pages/home.dart';
+import 'package:bitebudget/router/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 
 class MealPreferencesForm extends StatefulWidget {
   const MealPreferencesForm({super.key});
@@ -64,10 +66,7 @@ class _MealPreferencesFormState extends State<MealPreferencesForm> {
 
       // Navigate to home or next screen
       if (mounted) {
-        Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomePage()),
-        );
+        GoRouter.of(context).go(Routes.homePage);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
