@@ -6,7 +6,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:flutter_social_button/flutter_social_button.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:bitebudget/pages/home.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
