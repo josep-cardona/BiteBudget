@@ -1,4 +1,3 @@
-import 'package:bitebudget/pages/account_page.dart';
 import 'package:bitebudget/firebase_options.dart';
 
 import 'package:bitebudget/pages/welcome_page.dart';
@@ -31,8 +30,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(fontFamily: 'Inter'),
-
-      home: const WelcomePage(),
       routerConfig: router,
 
     );
