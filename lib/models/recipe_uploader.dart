@@ -12,6 +12,7 @@ class Recipe_Uploader {
       diet: 'Omnivore',
       ingredients: ['Pasta', 'Tomato Sauce', 'Ground Beef', 'Cheese'],
       type: ['Dinner', 'Italian', 'Comfort Food'],
+      imageUrl: '',
     );
 
   static void addNewRecipes(DatabaseService_Recipe db){
