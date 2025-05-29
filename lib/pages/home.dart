@@ -1,11 +1,10 @@
 import 'package:bitebudget/models/recipe.dart';
-import 'package:bitebudget/models/recipe_uploader.dart';
 import 'package:bitebudget/services/database_service.dart';
+import 'package:bitebudget/services/user_service.dart';
+import 'package:bitebudget/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
 
 
 
@@ -24,39 +23,22 @@ class _HomePageState extends State<HomePage> {
   late Future<List<Recipe>> _featuredRecipes; // This list will hold all fetched recipes
   late Future<List<Recipe>> _popularRecipes; 
   List<String> current_category = ['Breakfast'];
-  Map<String, dynamic>? _cachedUserData;
+  final UserService _userService = UserService();
+  AppUser? _currentUser;
 
 
 
-
-  final List<String> _featuresRecipeIdsToFetch = [
-    'x5BCf2fLp4UTd2RkPE9y',
-  ];
-
-  Future<Map<String, dynamic>?> getUser() async {
-    if (_cachedUserData != null) return _cachedUserData;
-
+  Future<AppUser?> getUser() async {
+    if (_currentUser != null) return _currentUser;
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return null;
-
-    final doc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .get();
-
-    if (doc.exists) {
-      _cachedUserData = doc.data();
-      return _cachedUserData;
-    }
-    return null;
+    _currentUser = await _userService.getUser(user.uid);
+    return _currentUser;
   }
-  Future<String?> _getUserName(Map<String, dynamic>? userData) async {
-    final userData = await getUser();
-    if (userData == null) return null;
-
-    final name = userData['name'] as String?;
-    final surname = userData['surname'] as String?;
-    return (name != null && surname != null) ? '$name $surname' : null;
+  Future<String?> _getUserName(AppUser? user) async {
+    final appUser = await getUser();
+    if (appUser == null) return null;
+    return appUser.displayName;
   }
 
 
@@ -549,7 +531,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget welcomeName() {
   return FutureBuilder<String?>(
-    future: _getUserName(_cachedUserData),
+    future: _getUserName(_currentUser),
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
         return const Padding(

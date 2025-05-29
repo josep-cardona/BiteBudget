@@ -1,12 +1,8 @@
 import 'package:bitebudget/router/routes.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:bitebudget/services/auth_service.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'package:flutter_social_button/flutter_social_button.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:bitebudget/pages/home.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -23,9 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email', 'profile'],
-  );
+  final AuthService _authService = AuthService();
 
   @override
   void dispose() {
@@ -36,36 +30,27 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _loginWithEmail() async {
     if (!_formKey.currentState!.validate()) return;
-        setState(() => _isLoading = true);
-      try {
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
-        if (mounted) {
-          GoRouter.of(context).go(Routes.homePage);
-        }
-      } on FirebaseAuthException catch (e) {
-        _showError(e.message ?? 'Login failed');
-      } finally {
-        if (mounted) setState(() => _isLoading = false);
+    setState(() => _isLoading = true);
+    try {
+      final user = await _authService.signInWithEmail(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+      if (user != null && mounted) {
+        GoRouter.of(context).go(Routes.homePage);
       }
+    } catch (e) {
+      _showError('Login failed: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
 
   Future<void> _signInWithGoogle() async {
     setState(() => _isLoading = true);
     try {
-      final googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return;
-
-      final googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      await FirebaseAuth.instance.signInWithCredential(credential);
-      if (mounted) {
+      final user = await _authService.signInWithGoogle();
+      if (user != null && mounted) {
         GoRouter.of(context).go(Routes.homePage);
       }
     } catch (e) {
@@ -78,17 +63,8 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _signInWithApple() async {
     setState(() => _isLoading = true);
     try {
-      final appleCredential = await SignInWithApple.getAppleIDCredential(
-        scopes: [AppleIDAuthorizationScopes.email, AppleIDAuthorizationScopes.fullName],
-      );
-
-      final credential = OAuthProvider("apple.com").credential(
-        idToken: appleCredential.identityToken,
-        accessToken: appleCredential.authorizationCode,
-      );
-
-      await FirebaseAuth.instance.signInWithCredential(credential);
-      if (mounted) {
+      final user = await _authService.signInWithApple();
+      if (user != null && mounted) {
         GoRouter.of(context).go(Routes.homePage);
       }
     } catch (e) {
@@ -104,20 +80,14 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Future<void> _forgotPassword() async {
-    final email = _emailController.text.trim();
-    if (email.isEmpty) {
-      _showError('Please enter your email to reset password.');
-      return;
-    }
+  Future<void> _resetPassword(String email) async {
     try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-      _showError('Password reset email sent!');
+      await _authService.sendPasswordResetEmail(email);
+      _showError('Password reset email sent.');
     } catch (e) {
-      _showError('Failed to send reset email: $e');
+      _showError('Failed to send password reset email: $e');
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -162,7 +132,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  
 
                   // Email Field
                   TextFormField(
@@ -219,7 +188,14 @@ class _LoginPageState extends State<LoginPage> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: _forgotPassword,
+                      onPressed: () {
+                        final email = _emailController.text.trim();
+                        if (email.isEmpty) {
+                          _showError('Please enter your email to reset password.');
+                          return;
+                        }
+                        _resetPassword(email);
+                      },
                       child: Text(
                         'Forgot Password?',
                         style: GoogleFonts.inter(
