@@ -3,28 +3,34 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class AppUser {
   final String uid;
   final String email;
-  final String? displayName;
-  final String? photoUrl;
+  final String? name;
+  final String? surname;
+  final int? age;
+  final double? height;
+  final double? weight;
+  final DateTime? createdAt;
   final String? dietType;
-  final double? calorieGoal;
-  final double? proteinGoal;
-  final double? weeklyBudget;
+  final String? caloriesGoal;
+  final String? proteinGoal;
+  final String? weeklyBudget;
   final List<String>? allergies;
-  final String? preferredStore;
-  final double? cookingTime;
+  final bool? mealPreferencesCompleted;
 
   AppUser({
     required this.uid,
     required this.email,
-    this.displayName,
-    this.photoUrl,
+    this.name,
+    this.surname,
+    this.age,
+    this.height,
+    this.weight,
+    this.createdAt,
     this.dietType,
-    this.calorieGoal,
+    this.caloriesGoal,
     this.proteinGoal,
     this.weeklyBudget,
     this.allergies,
-    this.preferredStore,
-    this.cookingTime,
+    this.mealPreferencesCompleted,
   });
 
   factory AppUser.fromFirestore(DocumentSnapshot doc) {
@@ -32,28 +38,34 @@ class AppUser {
     return AppUser(
       uid: doc.id,
       email: data['email'] ?? '',
-      displayName: data['displayName'],
-      photoUrl: data['photoUrl'],
+      name: data['name'],
+      surname: data['surname'],
+      age: data['age'],
+      height: (data['height'] as num?)?.toDouble(),
+      weight: (data['weight'] as num?)?.toDouble(),
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
       dietType: data['dietType'],
-      calorieGoal: (data['calorieGoal'] as num?)?.toDouble(),
-      proteinGoal: (data['proteinGoal'] as num?)?.toDouble(),
-      weeklyBudget: (data['weeklyBudget'] as num?)?.toDouble(),
+      caloriesGoal: data['caloriesGoal'],
+      proteinGoal: data['proteinGoal'],
+      weeklyBudget: data['weeklyBudget'],
       allergies: (data['allergies'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      preferredStore: data['preferredStore'],
-      cookingTime: (data['cookingTime'] as num?)?.toDouble(),
+      mealPreferencesCompleted: data['mealPreferencesCompleted'],
     );
   }
 
   Map<String, dynamic> toFirestore() => {
     'email': email,
-    'displayName': displayName,
-    'photoUrl': photoUrl,
+    'name': name,
+    'surname': surname,
+    'age': age,
+    'height': height,
+    'weight': weight,
+    'createdAt': createdAt,
     'dietType': dietType,
-    'calorieGoal': calorieGoal,
+    'caloriesGoal': caloriesGoal,
     'proteinGoal': proteinGoal,
     'weeklyBudget': weeklyBudget,
     'allergies': allergies,
-    'preferredStore': preferredStore,
-    'cookingTime': cookingTime,
+    'mealPreferencesCompleted': mealPreferencesCompleted,
   };
 }

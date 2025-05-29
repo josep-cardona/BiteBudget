@@ -37,7 +37,7 @@ class AuthService {
     final result = await _auth.signInWithCredential(credential);
     final user = result.user;
     if (user != null) {
-      await _userService.createUser(AppUser(uid: user.uid, email: user.email ?? '', displayName: user.displayName, photoUrl: user.photoURL));
+      await _userService.createUser(AppUser(uid: user.uid, email: user.email ?? ''));
     }
     return user;
   }
@@ -51,7 +51,7 @@ class AuthService {
     final result = await _auth.signInWithCredential(oauthCredential);
     final user = result.user;
     if (user != null) {
-      await _userService.createUser(AppUser(uid: user.uid, email: user.email ?? '', displayName: user.displayName));
+      await _userService.createUser(AppUser(uid: user.uid, email: user.email ?? ''));
     }
     return user;
   }

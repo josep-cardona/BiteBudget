@@ -10,6 +10,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 // Convert HomePage to a StatefulWidget
 class HomePage extends StatefulWidget {
+  static final ValueNotifier<int> userUpdateNotifier = ValueNotifier<int>(0);
   const HomePage({super.key});
 
 
@@ -18,42 +19,39 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
   late final DatabaseService_Recipe _databaseService;
-  late Future<List<Recipe>> _featuredRecipes; // This list will hold all fetched recipes
-  late Future<List<Recipe>> _popularRecipes; 
+  late Future<List<Recipe>> _featuredRecipes;
+  late Future<List<Recipe>> _popularRecipes;
   List<String> current_category = ['Breakfast'];
   final UserService _userService = UserService();
-  AppUser? _currentUser;
-
-
-
-  Future<AppUser?> getUser() async {
-    if (_currentUser != null) return _currentUser;
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return null;
-    _currentUser = await _userService.getUser(user.uid);
-    return _currentUser;
-  }
-  Future<String?> _getUserName(AppUser? user) async {
-    final appUser = await getUser();
-    if (appUser == null) return null;
-    return appUser.displayName;
-  }
-
-
-
+  Future<AppUser?>? _userFuture;
 
   @override
   void initState() {
     super.initState();
     _databaseService = DatabaseService_Recipe();
-    getUser();  // only runs once
-    // Fetch the first recipe when the page loads
-    _featuredRecipes=_databaseService.getRandomRecipes(2);
-    _popularRecipes=_databaseService.getFilteredRecipes(types: current_category);
+    _featuredRecipes = _databaseService.getRandomRecipes(2);
+    _popularRecipes = _databaseService.getFilteredRecipes(types: current_category);
+    _userFuture = _fetchUser();
+    HomePage.userUpdateNotifier.addListener(_reloadUser);
+  }
 
-    //Recipe_Uploader.addNewRecipes(_databaseService);
+  @override
+  void dispose() {
+    HomePage.userUpdateNotifier.removeListener(_reloadUser);
+    super.dispose();
+  }
+
+  void _reloadUser() {
+    setState(() {
+      _userFuture = _fetchUser();
+    });
+  }
+
+  Future<AppUser?> _fetchUser() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return null;
+    return await _userService.getUser(user.uid);
   }
 
   void _onCategorySelected(String category) {
@@ -64,73 +62,98 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Only refresh user if needed, not on every dependency change
+    // _refreshUser();
+  }
+
+  @override
+  void didUpdateWidget(covariant HomePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Always reload user when the widget is updated (e.g., after navigation)
+    setState(() {
+      _userFuture = _fetchUser();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
 
       //Build your entire screen content within the body
-      body: SafeArea( // Use SafeArea to avoid content overlapping status bar/notches
-        child: ListView( // Align children to the start (left)
-          children: [
-            SizedBox(height: 20.0),
-            welcomeDaytime(),
-            welcomeName(),
-            Padding(
-              padding: EdgeInsets.only(
-                left: 16,
-                top: 16,
-                bottom: 10
-              ),
-              child: const Text(
-                'Featured',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
-                  fontVariations: [FontVariation('wght', 700),],
+      body: FutureBuilder<AppUser?>(
+        future: _userFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final user = snapshot.data;
+          return SafeArea( // Use SafeArea to avoid content overlapping status bar/notches
+            child: ListView( // Align children to the start (left)
+              children: [
+                SizedBox(height: 20.0),
+                welcomeDaytime(),
+                welcomeName(user),
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    top: 16,
+                    bottom: 10
+                  ),
+                  child: const Text(
+                    'Featured',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 20,
+                      fontVariations: [FontVariation('wght', 700),],
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            //Fetch featureds
-            featuredMeals(),
-            Padding(
-              padding: EdgeInsets.only(
-                left: 16,
-                top: 16,
-                bottom: 10
-              ),
-              child: const Text(
-                'Category',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
-                  fontVariations: [FontVariation('wght', 700),],
+                //Fetch featureds
+                featuredMeals(),
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    top: 16,
+                    bottom: 10
+                  ),
+                  child: const Text(
+                    'Category',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 20,
+                      fontVariations: [FontVariation('wght', 700),],
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            categories(),
-            Padding(
-              padding: EdgeInsets.only(
-                left: 16,
-                top: 16,
-                bottom: 10
-              ),
-              child: const Text(
-                'Popular Recipes',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
-                  fontVariations: [FontVariation('wght', 700),],
+                categories(),
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    top: 16,
+                    bottom: 10
+                  ),
+                  child: const Text(
+                    'Popular Recipes',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 20,
+                      fontVariations: [FontVariation('wght', 700),],
+                    ),
+                  ),
                 ),
-              ),
+                popularMeals(),
+                Padding(
+                  padding: EdgeInsets.only(
+                    bottom: 20
+                  ),
+                )
+              ],
             ),
-            popularMeals(),
-            Padding(
-              padding: EdgeInsets.only(
-                bottom: 20
-              ),
-            )
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -315,42 +338,40 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget categories() {
-  const List<String> options = ['Breakfast','Lunch','Dinner'];
-
-  return SizedBox(
-    height: 41,
-    child: ListView.separated(
-      itemCount: options.length,
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      separatorBuilder:(context, index) => const SizedBox(width: 16),
-      itemBuilder:(context, index) {
-        final isSelected = current_category.contains(options[index]);
-
-        return GestureDetector(
-          onTap: () => _onCategorySelected(options[index]),
-          child: Container(
-            width: 120,
-            decoration: BoxDecoration(
-              color: isSelected ? Color(0xFF2C2C2C) : const Color(0xFFF1F5F5),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Center(
-              child: Text(
-                options[index],
-                style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.black,
-                  fontSize: 16,
-                  fontVariations: const [FontVariation('wght', 400)],
+    const List<String> options = ['Breakfast','Lunch','Dinner'];
+    return SizedBox(
+      height: 41,
+      child: ListView.separated(
+        itemCount: options.length,
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        separatorBuilder:(context, index) => const SizedBox(width: 16),
+        itemBuilder:(context, index) {
+          final isSelected = current_category.contains(options[index]);
+          return GestureDetector(
+            onTap: () => _onCategorySelected(options[index]),
+            child: Container(
+              width: 120,
+              decoration: BoxDecoration(
+                color: isSelected ? Color(0xFF2C2C2C) : const Color(0xFFF1F5F5),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Center(
+                child: Text(
+                  options[index],
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : Colors.black,
+                    fontSize: 16,
+                    fontVariations: const [FontVariation('wght', 400)],
+                  ),
                 ),
               ),
             ),
-          ),
-        );
-      },
-    ),
-  );
-}
+          );
+        },
+      ),
+    );
+  }
 
 
   FutureBuilder<List<Recipe>> featuredMeals() {
@@ -529,49 +550,19 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget welcomeName() {
-  return FutureBuilder<String?>(
-    future: _getUserName(_currentUser),
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
-          child: SizedBox(
-            height: 32,
-            child: Align(
-              alignment: Alignment.centerLeft,
-            ),
-          ),
-        );
-      }
-      if (snapshot.hasError) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text(
-            'Error loading name',
-            style: const TextStyle(
-              color: Colors.red,
-              fontSize: 24,
-              fontVariations: [FontVariation('wght', 800)],
-            ),
-          ),
-        );
-      }
-      final name = snapshot.data ?? '';
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Text(
-          name.isNotEmpty ? name : 'Welcome!',
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 24,
-            fontVariations: [FontVariation('wght', 800)],
-          ),
+  Widget welcomeName(AppUser? user) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Text(
+        '' + ((user?.name ?? '') + ((user?.surname != null && user?.surname != '') ? ' ${user?.surname}' : '')),
+        style: const TextStyle(
+          color: Colors.black,
+          fontSize: 24,
+          fontVariations: [FontVariation('wght', 800)],
         ),
-      );
-    },
-  );
-}
+      ),
+    );
+  }
 
   Padding welcomeDaytime() {
     return Padding(
