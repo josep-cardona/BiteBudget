@@ -1,12 +1,13 @@
-import 'package:bitebudget/pages/home.dart';
-import 'package:bitebudget/router/routes.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
+import 'package:bitebudget/router/routes.dart';
+import 'package:bitebudget/services/user_service.dart';
 
 class MealPreferencesForm extends StatefulWidget {
-  const MealPreferencesForm({super.key});
+  final Map<String, dynamic>? userInfo;
+  final VoidCallback? onSaved;
+  const MealPreferencesForm({Key? key, this.userInfo, this.onSaved}) : super(key: key);
 
   @override
   State<MealPreferencesForm> createState() => _MealPreferencesFormState();
@@ -23,11 +24,26 @@ class _MealPreferencesFormState extends State<MealPreferencesForm> {
   bool _isLoading = false;
 
   final List<String> _dietTypes = [
-    'Omnivore'
+    'Omnivore',
     'Vegetarian',
     'Vegan',
     'Gluten Free'
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize fields with userInfo if available
+    if (widget.userInfo != null) {
+      setState(() {
+        _selectedDiet = widget.userInfo!['dietType'];
+        _kcalController.text = widget.userInfo!['caloriesGoal'] ?? '';
+        _proteinController.text = widget.userInfo!['proteinGoal'] ?? '';
+        _budgetController.text = widget.userInfo!['weeklyBudget'] ?? '';
+        _allergies.addAll(List<String>.from(widget.userInfo!['allergies'] ?? []));
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -41,7 +57,6 @@ class _MealPreferencesFormState extends State<MealPreferencesForm> {
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate() || _selectedDiet == null) return;
     setState(() => _isLoading = true);
-
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -50,22 +65,23 @@ class _MealPreferencesFormState extends State<MealPreferencesForm> {
       setState(() => _isLoading = false);
       return;
     }
-
     try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .set({
+      // Merge info from user_info_form (if any) with meal preferences
+      final Map<String, dynamic> allUserData = {
+        ...?widget.userInfo,
+        'uid': user.uid,
+        'email': user.email ?? '',
         'dietType': _selectedDiet,
         'caloriesGoal': _kcalController.text.trim(),
         'proteinGoal': _proteinController.text.trim(),
         'weeklyBudget': _budgetController.text.trim(),
         'allergies': _allergies,
         'mealPreferencesCompleted': true,
-      }, SetOptions(merge: true));
-
-      // Navigate to home or next screen
-      if (mounted) {
+      };
+      await UserService().updateUser(user.uid, allUserData);
+      if (widget.onSaved != null) {
+        widget.onSaved!();
+      } else if (mounted) {
         GoRouter.of(context).go(Routes.homePage);
       }
     } catch (e) {
@@ -93,128 +109,208 @@ class _MealPreferencesFormState extends State<MealPreferencesForm> {
     });
   }
 
+  InputDecoration _formFieldDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: Colors.grey),
+      filled: true,
+      fillColor: const Color(0xFFF8F8F8),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide.none,
+      ),
+      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: BackButton(),
-        title: const Text('BiteBudget'),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Diet Type
-              const Text('Type of Diet*'),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                value: _selectedDiet,
-                items: _dietTypes
-                    .map((diet) => DropdownMenuItem(
-                          value: diet,
-                          child: Text(diet),
-                        ))
-                    .toList(),
-                onChanged: (val) => setState(() => _selectedDiet = val),
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Choose Diet',
+      backgroundColor: const Color(0xFFF6F6F6),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Container(
+            width: 400,
+            margin: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 16,
+                  offset: Offset(0, 4),
                 ),
-                validator: (value) =>
-                    value == null ? 'Please select a diet type' : null,
-              ),
-              const SizedBox(height: 24),
-
-              // Calories goal
-              const Text('Set the calories goal for each day'),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _kcalController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  hintText: 'Enter kcal',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Protein goal
-              const Text('Set the protein goal for each day'),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _proteinController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  hintText: 'Enter protein g',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Weekly budget
-              const Text('Set the maximum weekly budget'),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _budgetController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  hintText: 'Enter budget',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Allergies
-              const Text('Set allergies'),
-              Row(
+              ],
+            ),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _allergyController,
-                      decoration: const InputDecoration(
-                        hintText: 'Add Allergy',
-                        prefixIcon: Icon(Icons.add),
-                      ),
-                      onFieldSubmitted: (_) => _addAllergy(),
+                  // App Name
+                  const Text(
+                    'BiteBudget',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 28,
+                      color: Colors.black,
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.add),
-                    onPressed: _addAllergy,
+                  const SizedBox(height: 32),
+
+                  // Diet Type
+                  const Text('Type of Diet*', style: TextStyle(fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 6),
+                  DropdownButtonFormField<String>(
+                    value: _selectedDiet,
+                    items: _dietTypes
+                        .map((diet) => DropdownMenuItem(
+                              value: diet,
+                              child: Text(
+                                diet,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ))
+                        .toList(),
+                    onChanged: (val) => setState(() => _selectedDiet = val),
+                    decoration: InputDecoration(
+                      hintText: 'Choose Diet',
+                      filled: true,
+                      fillColor: const Color(0xFFF8F8F8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                    ),
+                    dropdownColor: const Color(0xFFF8F8F8), // Menu background color
+                    borderRadius: BorderRadius.circular(16), // Rounded corners for the menu
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.black),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  // Calories goal
+                  const Text('Set the calories goal for each day', style: TextStyle(fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 6),
+                  TextFormField(
+                    controller: _kcalController,
+                    keyboardType: TextInputType.number,
+                    decoration: _formFieldDecoration('Enter kcal'),
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Protein goal
+                  const Text('Set the protein goal for each day', style: TextStyle(fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 6),
+                  TextFormField(
+                    controller: _proteinController,
+                    keyboardType: TextInputType.number,
+                    decoration: _formFieldDecoration('Enter protein g'),
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Weekly budget
+                  const Text('Set the maximum weekly budget', style: TextStyle(fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 6),
+                  TextFormField(
+                    controller: _budgetController,
+                    keyboardType: TextInputType.number,
+                    decoration: _formFieldDecoration('Enter budget'),
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Allergies
+                  const Text('Set allergies', style: TextStyle(fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.add_box_outlined, size: 20),
+                        onPressed: _addAllergy,
+                        splashRadius: 18,
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: _addAllergy,
+                          child: TextFormField(
+                            controller: _allergyController,
+                            decoration: const InputDecoration(
+                              hintText: 'Add Allergy',
+                              border: InputBorder.none,
+                              isDense: true,
+                              contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+                            ),
+                            onFieldSubmitted: (_) => _addAllergy(),
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: _addAllergy,
+                        child: const Text(
+                          'Add Allergy',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_allergies.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Wrap(
+                        spacing: 8,
+                        children: _allergies
+                            .map((allergy) => Chip(
+                                  label: Text(allergy),
+                                  onDeleted: () => _removeAllergy(allergy),
+                                ))
+                            .toList(),
+                      ),
+                    ),
+                  const SizedBox(height: 32),
+
+                  // Submit Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _submitForm,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              'Submit',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                    ),
                   ),
                 ],
               ),
-              Wrap(
-                spacing: 8,
-                children: _allergies
-                    .map((allergy) => Chip(
-                          label: Text(allergy),
-                          onDeleted: () => _removeAllergy(allergy),
-                        ))
-                    .toList(),
-              ),
-              const SizedBox(height: 32),
-
-              // Submit Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _submitForm,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator()
-                      : const Text('Submit'),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
