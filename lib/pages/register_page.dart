@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:bitebudget/services/auth_service.dart';
 import 'package:flutter_social_button/flutter_social_button.dart';
 import 'user_info_form.dart'; // Create this file next
+import 'package:bitebudget/services/user_service.dart';
+import 'package:bitebudget/models/user.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -17,12 +17,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-  //clientId: '1095160713979-1o7fp51prdpbs1iululus2iadv0j9dko.apps.googleusercontent.com', 
-  scopes: ['email'],
-  );
-
-
+  final AuthService _authService = AuthService();
+  final UserService _userService = UserService();
 
   @override
   void dispose() {
@@ -36,29 +32,30 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!_formKey.currentState!.validate()) return;
 
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+      final user = await _authService.registerWithEmail(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
       );
-      _navigateToUserInfo();
-    } on FirebaseAuthException catch (e) {
-      _showError(e.message ?? 'Registration failed');
+      if (user != null) {
+        // Create user document in Firestore
+        final appUser = AppUser(
+          uid: user.uid,
+          email: user.email ?? '',
+        );
+        await _userService.createUser(appUser);
+        _navigateToUserInfo();
+      }
+    } catch (e) {
+      _showError('Registration failed: $e');
     }
   }
 
   Future<void> _signInWithGoogle() async {
     try {
-      final googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return;
-
-      final googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      await FirebaseAuth.instance.signInWithCredential(credential);
-      _navigateToUserInfo();
+      final user = await _authService.signInWithGoogle();
+      if (user != null) {
+        _navigateToUserInfo();
+      }
     } catch (e) {
       _showError('Google sign-in failed: $e');
     }
@@ -66,17 +63,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Future<void> _signInWithApple() async {
     try {
-      final appleCredential = await SignInWithApple.getAppleIDCredential(
-        scopes: [AppleIDAuthorizationScopes.email, AppleIDAuthorizationScopes.fullName],
-      );
-
-      final credential = OAuthProvider("apple.com").credential(
-        idToken: appleCredential.identityToken,
-        accessToken: appleCredential.authorizationCode,
-      );
-
-      await FirebaseAuth.instance.signInWithCredential(credential);
-      _navigateToUserInfo();
+      final user = await _authService.signInWithApple();
+      if (user != null) {
+        _navigateToUserInfo();
+      }
     } catch (e) {
       _showError('Apple sign-in failed: $e');
     }
