@@ -295,7 +295,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const MealPreferencesForm()),
+                MaterialPageRoute(
+                  builder: (_) => const MealPreferencesForm(fromAccountPage: true),
+                ),
               );
             },
             child: const Text(

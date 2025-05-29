@@ -5,7 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:bitebudget/router/routes.dart';
 
 class MealPreferencesForm extends StatefulWidget {
-  const MealPreferencesForm({super.key});
+  final bool fromAccountPage;
+  const MealPreferencesForm({super.key, this.fromAccountPage = false});
 
   @override
   State<MealPreferencesForm> createState() => _MealPreferencesFormState();
@@ -64,7 +65,11 @@ class _MealPreferencesFormState extends State<MealPreferencesForm> {
       }, SetOptions(merge: true));
 
       if (mounted) {
-        GoRouter.of(context).go(Routes.homePage);
+        if (widget.fromAccountPage) {
+          Navigator.pop(context); // Go back to AccountPage
+        } else {
+          GoRouter.of(context).go(Routes.homePage); // Go to home after registration
+        }
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
