@@ -1,5 +1,6 @@
 
 import 'package:bitebudget/layout_scaffold.dart';
+import 'package:bitebudget/pages/account_page.dart';
 import 'package:bitebudget/pages/home.dart';
 
 import 'package:bitebudget/pages/recipe_page.dart';
@@ -53,7 +54,7 @@ final router = GoRouter(
                     routes: [
                             GoRoute(
                             path: Routes.profilePage,
-                            builder: (context, state) => const TestPage(),
+                            builder: (context, state) => const AccountPage(),
                         ),
                     ],
                 ),
