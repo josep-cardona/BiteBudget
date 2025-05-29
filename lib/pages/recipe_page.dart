@@ -122,7 +122,7 @@ class _RecipePageState extends State<RecipePage> {
 
 Widget _buildItem(String label, IconData icon) {
   return Container(
-    width: 200,
+    width: 170,
     child:Row(
     mainAxisSize: MainAxisSize.min,  // shrink to fit content
     children: [

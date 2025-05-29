@@ -37,7 +37,15 @@ class AuthService {
     final result = await _auth.signInWithCredential(credential);
     final user = result.user;
     if (user != null) {
-      await _userService.createUser(AppUser(uid: user.uid, email: user.email ?? ''));
+      // Only create the user if it doesn't exist
+      final existing = await _userService.getUser(user.uid);
+      if (existing == null) {
+        await _userService.createUser(AppUser(
+          uid: user.uid,
+          email: user.email ?? googleUser.email,
+          name: googleUser.displayName,
+        ));
+      }
     }
     return user;
   }
