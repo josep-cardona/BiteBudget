@@ -179,6 +179,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       if (value.length < 6) return 'Password too short (min 6 chars)';
                       return null;
                     },
+                    textInputAction: TextInputAction.next,
+                    onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
                   ),
                   const SizedBox(height: 16),
 
@@ -209,6 +211,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       }
                       return null;
                     },
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) => _isLoading ? null : _registerWithEmail(),
                   ),
                   const SizedBox(height: 24),
 
