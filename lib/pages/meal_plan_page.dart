@@ -4,6 +4,7 @@ import 'package:bitebudget/services/database_service.dart';
 import 'dart:math';
 import '../models/meal_plan.dart';
 import '../services/meal_plan_service.dart';
+import 'day_meal_plan_page.dart';
 
 class MealPlanPage extends StatefulWidget {
   const MealPlanPage({Key? key}) : super(key: key);
@@ -16,6 +17,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
   MealPlan? _mealPlan;
   bool _loading = true;
   DateTime _currentMonday = _getMondayOf(DateTime.now());
+  Map<int, Map<String, double>> _dayTotals = {};
 
   static DateTime _getMondayOf(DateTime date) {
     return DateTime(date.year, date.month, date.day).subtract(Duration(days: date.weekday - 1));
@@ -36,7 +38,34 @@ class _MealPlanPageState extends State<MealPlanPage> {
     setState(() {
       _mealPlan = plan;
       _loading = false;
+      _dayTotals.clear(); // Clear previous totals before recomputing
     });
+    await _computeDayTotals();
+  }
+
+  Future<void> _computeDayTotals() async {
+    if (_mealPlan == null) return;
+    final recipeService = DatabaseService_Recipe();
+    for (int i = 0; i < _mealPlan!.days.length; i++) {
+      final day = _mealPlan!.days[i];
+      final names = [day.breakfast, day.lunch, day.snack, day.dinner].whereType<String>().toList();
+      final recipes = await recipeService.getRecipesByNames(names);
+      double calories = 0, protein = 0, price = 0;
+      for (var name in names) {
+        final r = recipes[name];
+        if (r != null) {
+          calories += r.calories;
+          protein += r.protein;
+          price += r.price;
+        }
+      }
+      _dayTotals[i] = {
+        'calories': calories,
+        'protein': protein,
+        'price': price,
+      };
+    }
+    if (mounted) setState(() {});
   }
 
   Future<void> _generateMealPlanForWeek(DateTime monday) async {
@@ -109,9 +138,27 @@ class _MealPlanPageState extends State<MealPlanPage> {
     }
   }
 
+  Future<void> _deleteMealPlanForWeek(DateTime monday) async {
+    setState(() { _loading = true; });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final mealPlanService = DatabaseServiceMealPlan();
+    final plan = await mealPlanService.getMealPlanForWeek(user.uid, monday);
+    if (plan != null) {
+      await mealPlanService.deleteMealPlan(plan.id, user.uid);
+    }
+    await _fetchMealPlanForWeek(monday);
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Meal plan deleted!')));
+  }
+
+  double _getTotal(String type, int dayIdx) {
+    return _dayTotals[dayIdx]?[type] ?? 0.0;
+  }
+
   void _changeWeek(int offset) {
     setState(() {
       _currentMonday = _currentMonday.add(Duration(days: 7 * offset));
+      _dayTotals.clear(); // Clear totals when changing week
     });
     _fetchMealPlanForWeek(_currentMonday);
   }
@@ -124,7 +171,8 @@ class _MealPlanPageState extends State<MealPlanPage> {
     final weekStart = _currentMonday;
     final weekEnd = _currentMonday.add(const Duration(days: 6));
     final today = DateTime.now();
-    final isCurrentWeek = today.isAfter(weekStart.subtract(const Duration(days: 1))) && today.isBefore(weekEnd.add(const Duration(days: 1)));
+    final currentMonday = _getMondayOf(today);
+    final isCurrentWeek = weekStart.year == currentMonday.year && weekStart.month == currentMonday.month && weekStart.day == currentMonday.day;
     int todayIdx = isCurrentWeek ? today.weekday - 1 : -1;
     final todayPlan = (todayIdx >= 0 && _mealPlan?.days.length == 7) ? _mealPlan!.days[todayIdx] : null;
     return Column(
@@ -151,20 +199,72 @@ class _MealPlanPageState extends State<MealPlanPage> {
             ],
           ),
         ),
+        if (!isCurrentWeek)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4.0),
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.today),
+              label: const Text('Go to Current Week'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              onPressed: () {
+                setState(() {
+                  _currentMonday = currentMonday;
+                });
+                _fetchMealPlanForWeek(currentMonday);
+              },
+            ),
+          ),
         if (isCurrentWeek && todayPlan != null) ...[
-          Card(
-            color: Colors.amber[50],
-            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: ListTile(
-              title: const Text('Today', style: TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Breakfast:  \t${todayPlan.breakfast ?? "-"}'),
-                  Text('Lunch:      \t${todayPlan.lunch ?? "-"}'),
-                  Text('Snack:      \t${todayPlan.snack ?? "-"}'),
-                  Text('Dinner:     \t${todayPlan.dinner ?? "-"}'),
-                ],
+          Center(
+            child: SizedBox(
+              width: 380, // Match the width of other cards
+              child: GestureDetector(
+                onTap: _mealPlan == null ? null : () async {
+                  await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => DayMealPlanPage(
+                        dayPlan: todayPlan,
+                        dayIndex: todayIdx,
+                        weekPlanId: _mealPlan!.id,
+                        weekMonday: _currentMonday,
+                        weekDays: _mealPlan!.days,
+                      ),
+                    ),
+                  );
+                  if (mounted) {
+                    await _fetchMealPlanForWeek(_currentMonday);
+                  }
+                },
+                child: Card(
+                  color: Colors.amber[50],
+                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: ListTile(
+                    title: const Text('Today', style: TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Breakfast:  \t${todayPlan.breakfast ?? "-"}'),
+                        Text('Lunch:      \t${todayPlan.lunch ?? "-"}'),
+                        Text('Snack:      \t${todayPlan.snack ?? "-"}'),
+                        Text('Dinner:     \t${todayPlan.dinner ?? "-"}'),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Text('Calories:  ${_getTotal('calories', todayIdx).toStringAsFixed(0)}'),
+                            const SizedBox(width: 12),
+                            Text('Protein:  ${_getTotal('protein', todayIdx).toStringAsFixed(0)}g'),
+                            const SizedBox(width: 12),
+                            Text('Price:  ${_getTotal('price', todayIdx).toStringAsFixed(2)}€'),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
@@ -193,9 +293,21 @@ class _MealPlanPageState extends State<MealPlanPage> {
         ] else ...[
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              onPressed: () => _regenerateMealPlanForWeek(_currentMonday),
-              child: const Text('Regenerate Meal Plan'),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => _regenerateMealPlanForWeek(_currentMonday),
+                    child: const Text('Regenerate Meal Plan'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () => _deleteMealPlanForWeek(_currentMonday),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  child: const Icon(Icons.delete, color: Colors.white),
+                ),
+              ],
             ),
           ),
         ],
@@ -209,18 +321,59 @@ class _MealPlanPageState extends State<MealPlanPage> {
                     String dayName = [
                       'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
                     ][index];
-                    return Card(
-                      margin: const EdgeInsets.all(8),
-                      child: ListTile(
-                        title: Text(dayName),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Breakfast:  \t${day.breakfast ?? "-"}'),
-                            Text('Lunch:      \t${day.lunch ?? "-"}'),
-                            Text('Snack:      \t${day.snack ?? "-"}'),
-                            Text('Dinner:     \t${day.dinner ?? "-"}'),
-                          ],
+                    final date = weekStart.add(Duration(days: index));
+                    double calories = _getTotal('calories', index);
+                    double protein = _getTotal('protein', index);
+                    double price = _getTotal('price', index);
+                    return Center(
+                      child: SizedBox(
+                        width: 380, // or MediaQuery.of(context).size.width * 0.92 for responsive
+                        child: Card(
+                          margin: const EdgeInsets.all(8),
+                          child: ListTile(
+                            title: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(dayName),
+                                Text('${date.day}/${date.month}', style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.grey)),
+                              ],
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Breakfast:  \t${day.breakfast ?? "-"}'),
+                                Text('Lunch:      \t${day.lunch ?? "-"}'),
+                                Text('Snack:      \t${day.snack ?? "-"}'),
+                                Text('Dinner:     \t${day.dinner ?? "-"}'),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Text('Calories:  ${calories.toStringAsFixed(0)}'),
+                                    const SizedBox(width: 12),
+                                    Text('Protein:  ${protein.toStringAsFixed(0)}g'),
+                                    const SizedBox(width: 12),
+                                    Text('Price:  ${price.toStringAsFixed(2)}€'),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            onTap: _mealPlan == null ? null : () async {
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => DayMealPlanPage(
+                                    dayPlan: day,
+                                    dayIndex: index,
+                                    weekPlanId: _mealPlan!.id,
+                                    weekMonday: _currentMonday,
+                                    weekDays: _mealPlan!.days,
+                                  ),
+                                ),
+                              );
+                              if (mounted) {
+                                await _fetchMealPlanForWeek(_currentMonday);
+                              }
+                            },
+                          ),
                         ),
                       ),
                     );
