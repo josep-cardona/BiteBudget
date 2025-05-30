@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:bitebudget/pages/meal_preferences_form.dart';
+import 'package:bitebudget/services/user_service.dart';
 
 class UserInfoForm extends StatefulWidget {
   const UserInfoForm({super.key});
@@ -45,24 +45,25 @@ class _UserInfoFormState extends State<UserInfoForm> {
     }
 
     try {
-      final userData = {
+      // Collect all info form fields
+      final infoData = {
         'name': _nameController.text.trim(),
         'surname': _surnameController.text.trim(),
-        'createdAt': FieldValue.serverTimestamp(),
+        'age': int.tryParse(_ageController.text.trim()),
+        'weight': double.tryParse(_weightController.text.trim()),
+        'height': double.tryParse(_heightController.text.trim()),
+        'createdAt': DateTime.now(),
+        'email': user.email ?? '',
       };
-      _addIfValid(_ageController.text.trim(), (v) => int.tryParse(v), 'age', userData);
-      _addIfValid(_weightController.text.trim(), (v) => double.tryParse(v), 'weight', userData);
-      _addIfValid(_heightController.text.trim(), (v) => double.tryParse(v), 'height', userData);
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .set(userData, SetOptions(merge: true));
+      // Save info fields to Firestore (merge, not overwrite)
+      await UserService().updateUser(user.uid, infoData);
 
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const MealPreferencesForm()),
+          MaterialPageRoute(
+            builder: (context) => MealPreferencesForm(userInfo: infoData),
+          ),
         );
       }
     } catch (e) {
@@ -72,17 +73,6 @@ class _UserInfoFormState extends State<UserInfoForm> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
-  }
-
-  void _addIfValid(
-    String value,
-    dynamic Function(String) parser,
-    String fieldName,
-    Map<String, dynamic> data,
-  ) {
-    if (value.isEmpty) return;
-    final parsed = parser(value);
-    if (parsed != null) data[fieldName] = parsed;
   }
 
   @override
