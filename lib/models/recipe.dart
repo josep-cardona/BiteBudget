@@ -10,7 +10,9 @@ class Recipe {
   String diet;
   List<String> ingredients;
   List<String> type;
-  String imageUrl;
+  String? image_url;
+  List<String> steps;
+
 
   Recipe({
     required this.name,
@@ -21,7 +23,8 @@ class Recipe {
     required this.diet,
     required this.ingredients,
     required this.type,
-    required this.imageUrl,
+    this.image_url,
+    required this.steps,
   });
 
   // Factory Constructor: From Firestore Map to Dart Object
@@ -33,16 +36,22 @@ class Recipe {
       final data = snapshot.data() ?? {};
 
     return Recipe(
-      name: data['name'] as String? ?? 'Unnamed Recipe',
-      calories: (data['calories'] as num?)?.toDouble() ?? 0.0,
-      protein: (data['protein'] as num?)?.toDouble() ?? 0.0,
-      price: (data['price'] as num?)?.toDouble() ?? 0.0,
-      time: (data['time'] as num?)?.toDouble() ?? 0.0,
-      diet: data['diet'] as String? ?? '',
-      ingredients: (data['ingredients'] as List<dynamic>? ?? []).cast<String>(),
-      type: (data['type'] as List<dynamic>? ?? []).cast<String>(),
-      imageUrl: data['image_url'] as String? ?? '',
-
+      name: data?['name'] as String,
+      calories: (data?['calories'] as num).toDouble(),
+      protein: (data?['protein'] as num).toDouble(),
+      price: (data?['price'] as num).toDouble(),
+      time: (data?['time'] as num).toDouble(),
+      diet: data?['diet'] as String,
+      // Handling Lists (Arrays):
+      // Cast to List<dynamic> first, then map to the desired type.
+      ingredients: (data?['ingredients'] as List<dynamic>)
+          .map((item) => item as String)
+          .toList(),
+      type: (data?['type'] as List<dynamic>)
+          .map((item) => item as String)
+          .toList(),
+      image_url: data?['image_url'] as String?,
+      steps: (data?['steps'] as List<dynamic>?)?.map((item) => item as String).toList() ?? [],
     );
   }
 
@@ -58,7 +67,8 @@ class Recipe {
       'diet': diet,
       'ingredients': ingredients,
       'type': type,
-      'image_url': imageUrl,
+      if (image_url != null) 'image_url': image_url,
+      'steps': steps,
     };
   }
 }

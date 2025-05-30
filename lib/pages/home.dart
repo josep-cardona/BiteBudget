@@ -5,14 +5,12 @@ import 'package:bitebudget/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
-
+import 'package:bitebudget/pages/recipe_page.dart';
 
 // Convert HomePage to a StatefulWidget
 class HomePage extends StatefulWidget {
   static final ValueNotifier<int> userUpdateNotifier = ValueNotifier<int>(0);
   const HomePage({super.key});
-
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -208,129 +206,148 @@ class _HomePageState extends State<HomePage> {
         );
   }
 
-  Container popularCard(Recipe recipe) {
-    return Container(
-      height: 240,
-      padding: const EdgeInsets.all(15.36),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x19053336),
-            blurRadius: 16,
-            offset: Offset(0, 2),
+  GestureDetector popularCard(Recipe recipe) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => RecipePage(recipe: recipe),
           ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // IMAGE + BADGE
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                width: 161.28,
-                height: 128,
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 196, 92, 92),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              Positioned(
-                top: -40,
-                child: Container(
+        );
+      },
+      child: Container(
+        height: 240,
+        padding: const EdgeInsets.all(15.36),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x19053336),
+              blurRadius: 16,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // IMAGE + BADGE
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
                   width: 161.28,
-                  height: 235,
+                  height: 128,
                   decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: NetworkImage("https://placehold.co/161x235"),
-                      fit: BoxFit.cover,
+                    color: const Color.fromARGB(255, 196, 92, 92),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: recipe.image_url != null && recipe.image_url!.isNotEmpty
+                      ? (() {
+                          print('popularCard: image_url is NOT empty: \\${recipe.image_url}');
+                          return ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Image.network(
+                              recipe.image_url!,
+                              width: 161.28,
+                              height: 128,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                print('popularCard: Image load error: \\${error}');
+                                return Container(
+                                  color: const Color.fromARGB(255, 196, 92, 92),
+                                );
+                              },
+                            ),
+                          );
+                        })()
+                      : (() {
+                          print('popularCard: image_url is empty or null for recipe: \\${recipe.name}');
+                          return null;
+                        })(),
+                ),
+                Positioned(
+                  right: 12,
+                  top: 12,
+                  child: Container(
+                    width: 26.88,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x19053336),
+                          blurRadius: 16,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: SvgPicture.asset('assets/icons/Heart.svg',width: 16,height: 16, color: Colors.black,),
+
                     ),
                   ),
                 ),
-              ),
-              Positioned(
-                right: 12,
-                top: 12,
-                child: Container(
-                  width: 26.88,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(4),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color(0x19053336),
-                        blurRadius: 16,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: SvgPicture.asset('assets/icons/Heart.svg',width: 16,height: 16, color: Colors.black,),
+              ],
+            ),
 
-                  ),
+            const SizedBox(height: 12),
+
+            // NAME - LIMITED TO WIDTH OF BOTTOM ROW
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: 161.28),
+              child: Text(
+                recipe.name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: const Color(0xFF0A2533),
+                  fontSize: 16,
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w700,
+                  height: 1.35,
                 ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // NAME - LIMITED TO WIDTH OF BOTTOM ROW
-          ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: 161.28),
-            child: Text(
-              recipe.name,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: const Color(0xFF0A2533),
-                fontSize: 16,
-                fontFamily: 'Inter',
-                fontWeight: FontWeight.w700,
-                height: 1.35,
               ),
             ),
-          ),
 
-          Spacer(),
+            Spacer(),
 
-          // BOTTOM ROW - DEFINES CARD WIDTH
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SvgPicture.asset('assets/icons/calories_icon.svg',width: 16,height: 16, color: const Color(0xff97a2b1),),
-              const SizedBox(width: 7),
-              Text(
-                '${recipe.calories.toInt()} Kcal',
-                style: TextStyle(
-                  color: const Color(0xFF97A1B0),
-                  fontSize: 14,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.w400,
-                  height: 1.45,
+            // BOTTOM ROW - DEFINES CARD WIDTH
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SvgPicture.asset('assets/icons/calories_icon.svg',width: 16,height: 16, color: const Color(0xff97a2b1),),
+                const SizedBox(width: 7),
+                Text(
+                  '${recipe.calories.toInt()} Kcal',
+                  style: TextStyle(
+                    color: const Color(0xFF97A1B0),
+                    fontSize: 14,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w400,
+                    height: 1.45,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 14),
-              SvgPicture.asset('assets/icons/Time_circle_thin.svg',width: 16,height: 16, color: const Color(0xff97a2b1)),
-              const SizedBox(width: 7),
-              Text(
-                '${recipe.time.toInt()} Min',
-                style: TextStyle(
-                  color: const Color(0xFF97A1B0),
-                  fontSize: 14,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.w400,
-                  height: 1.45,
+                const SizedBox(width: 14),
+                SvgPicture.asset('assets/icons/Time_circle_thin.svg',width: 16,height: 16, color: const Color(0xff97a2b1)),
+                const SizedBox(width: 7),
+                Text(
+                  '${recipe.time.toInt()} Min',
+                  style: TextStyle(
+                    color: const Color(0xFF97A1B0),
+                    fontSize: 14,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w400,
+                    height: 1.45,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
 
@@ -392,9 +409,7 @@ class _HomePageState extends State<HomePage> {
 
               // --- Data Available ---
               if (snapshot.hasData) {
-                // If the Future completed successfully and has data
                 final List<Recipe> featuredRecipes = snapshot.data!;
-
                 if (featuredRecipes.isEmpty) {
                   return const Center(child: Text('No recipes found.'));
                 }
@@ -409,9 +424,16 @@ class _HomePageState extends State<HomePage> {
                     ),
                     separatorBuilder:(context, index) => SizedBox(width: 16,),
                     itemBuilder:(context, index) {
-                      //Container for featured card
-                      
-                      return featuredRecipeCard(featuredRecipes[index]);
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => RecipePage(recipe: featuredRecipes[index]),
+                            ),
+                          );
+                        },
+                        child: featuredRecipeCard(featuredRecipes[index]),
+                      );
                     },
                   ),
                 );
@@ -441,6 +463,29 @@ class _HomePageState extends State<HomePage> {
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
+              child: recipe.image_url != null && recipe.image_url!.isNotEmpty
+                  ? (() {
+                      print('featuredRecipeCard: image_url is NOT empty: \\${recipe.image_url}');
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.network(
+                          recipe.image_url!,
+                          width: 264,
+                          height: 172,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            print('featuredRecipeCard: Image load error: \\${error}');
+                            return Container(
+                              color: const Color(0xFF6FB9BE),
+                            );
+                          },
+                        ),
+                      );
+                    })()
+                  : (() {
+                      print('featuredRecipeCard: image_url is empty or null for recipe: \\${recipe.name}');
+                      return null;
+                    })(),
             ),
           ),
           Positioned(
@@ -565,42 +610,44 @@ class _HomePageState extends State<HomePage> {
   }
 
   Padding welcomeDaytime() {
+    String greeting() {
+      final hour = DateTime.now().hour;
+      if (hour >= 5 && hour < 12) return 'Good Morning';
+      if (hour >= 12 && hour < 17) return 'Good Afternoon';
+      if (hour >= 17 && hour < 21) return 'Good Evening';
+      return 'Good Night';
+    }
     return Padding(
-            padding: const EdgeInsets.only(
-              top: 16.0,
-              left: 16.0,
+      padding: const EdgeInsets.only(
+        top: 16.0,
+        left: 16.0,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min, // Keep the Row tight to its children
+        crossAxisAlignment: CrossAxisAlignment.center, // Vertically center icon and text
+        children: [
+          Container(
+            color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: SvgPicture.asset(
+                'assets/icons/sun_icon.svg',
+                width: 17, 
+                height: 17,
+              ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min, // Keep the Row tight to its children
-              crossAxisAlignment: CrossAxisAlignment.center, // Vertically center icon and text
-              children: [
-                // Icon container with background and padding
-                Container(
-                  color: Colors.white,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 4),
-                    child: SvgPicture.asset(
-                      'assets/icons/sun_icon.svg',
-                      width: 17, 
-                      height: 17,
-                    ),
-                  ),
-                ),
-
-                // Add a small horizontal space between the icon and text
-                const SizedBox(width: 1.0),
-
-                // Your text
-                const Text(
-                  'Good Morning',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 14,
-                    fontVariations: [FontVariation('wght', 700),],
-                  ),
-                ),
-              ],
+          ),
+          const SizedBox(width: 1.0),
+          Text(
+            greeting(),
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 14,
+              fontVariations: [FontVariation('wght', 700)],
             ),
-          );
+          ),
+        ],
+      ),
+    );
   }
 }
