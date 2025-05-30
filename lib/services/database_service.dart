@@ -59,9 +59,9 @@ class DatabaseService_Recipe {
     return _recipesRef.snapshots();
   }
 
-  void addRecipe(Recipe recipe) async{
-    _recipesRef.add(recipe);
-  }
+Future<void> addRecipe(Recipe recipe) async {
+  await _recipesRef.add(recipe);
+}
 
   Future<List<Recipe>> getRandomRecipes(int count) async {
     try {

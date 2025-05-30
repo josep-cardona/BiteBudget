@@ -11,6 +11,8 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bitebudget/models/recipe_uploader.dart';
+import 'package:bitebudget/services/database_service.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -71,6 +73,19 @@ class _ProfilePageState extends State<ProfilePage> {
     _navigateAndRefresh(EditProfilePage(user: _user));
   }
 
+  Future<void> _uploadRecipes() async {
+    try {
+      await RecipeUploader.uploadRecipesFromJson(DatabaseService_Recipe());
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Recipes uploaded successfully!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Upload failed: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -121,6 +136,20 @@ class _ProfilePageState extends State<ProfilePage> {
               _profileMenuItem(Icons.flash_on, 'Future Features'),
               _profileMenuItem(Icons.menu_book_outlined, 'About us'),
               _profileMenuItem(Icons.logout, 'Log out', onTap: _logout),
+              if (_user?.email == 'admin@bitebudget.com')
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.upload, color: Colors.white),
+                    label: const Text('Upload JSON', style: TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                    ),
+                    onPressed: _uploadRecipes,
+                  ),
+                ),
             ],
           ),
         ),

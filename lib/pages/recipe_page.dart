@@ -1,6 +1,10 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:bitebudget/models/recipe.dart';
+import 'package:bitebudget/models/recipe_uploader.dart';
+import 'package:bitebudget/services/database_service.dart';
+import 'package:flutter/foundation.dart';
 
 class RecipePage extends StatefulWidget {
   final Recipe recipe;
@@ -11,6 +15,19 @@ class RecipePage extends StatefulWidget {
 }
 
 class _RecipePageState extends State<RecipePage> {
+  Future<void> _uploadRecipes() async {
+    try {
+      await RecipeUploader.uploadRecipesFromJson(DatabaseService_Recipe());
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Recipes uploaded successfully!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Upload failed: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,8 +49,7 @@ class _RecipePageState extends State<RecipePage> {
                     fit: BoxFit.cover,
                   ),
                 ),
-
-                // Red section that overlaps and grows with content
+                // White section that overlaps and grows with content
                 Transform.translate(
                   offset: const Offset(0, -20), // overlap by 20 pixels
                   child: Container(
@@ -56,13 +72,12 @@ class _RecipePageState extends State<RecipePage> {
                               // Left: Title
                               Text(
                                 widget.recipe.name,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.black,
                                   fontSize: 24,
                                   fontVariations: [FontVariation('wght', 600)],
                                 ),
                               ),
-
                               // Right: Icon + Time
                               Row(
                                 children: [
@@ -72,7 +87,7 @@ class _RecipePageState extends State<RecipePage> {
                                       'assets/icons/time_circle.svg',
                                       width: 16,
                                       height: 16,
-                                      color: Color(0xFF748189),
+                                      color: const Color(0xFF748189),
                                     ),
                                   ),
                                   const SizedBox(width: 4),
@@ -91,8 +106,8 @@ class _RecipePageState extends State<RecipePage> {
                               ),
                             ],
                           ),
-
                         ),
+                        const SizedBox(height: 10),
                         Text(
                           'This Pudding is the perfect fresh breakfast for a hot summer morning',
                           style: const TextStyle(
@@ -115,8 +130,7 @@ class _RecipePageState extends State<RecipePage> {
                             ],
                           ),
                         ),
-
-                        
+                        // ... add more recipe details here ...
                       ],
                     ),
                   ),
@@ -141,39 +155,37 @@ class _RecipePageState extends State<RecipePage> {
   }
 }
 
-
-
 Widget _buildItem(String label, IconData icon) {
-  return Container(
+  return SizedBox(
     width: 170,
-    child:Row(
-    mainAxisSize: MainAxisSize.min,  // shrink to fit content
-    children: [
-      Container(
-        width: 40,
-        height: 40,
-        decoration: ShapeDecoration(
-          color: const Color(0xFFE6EBF2),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: ShapeDecoration(
+            color: const Color(0xFFE6EBF2),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: Icon(
+            icon,
+            color: Colors.black,
+            size: 24.0,
           ),
         ),
-        child: Icon(
-          icon,         // Choose any icon from the Icons class
-          color: Colors.black,
-          size: 24.0,
+        const SizedBox(width: 10),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.black,
+            fontSize: 16,
+            fontVariations: [FontVariation('wght', 400)],
+          ),
         ),
-      ),
-      const SizedBox(width: 10),
-      Text(
-        label,
-        style: const TextStyle(
-          color: Colors.black,
-          fontSize: 16,
-          fontVariations: [FontVariation('wght', 400)],
-        ),
-      ),
-    ],
-  )
+      ],
+    ),
   );
 }

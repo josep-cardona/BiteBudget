@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Greek Yogurt Bowl",
+    "calories": 280,
+    "protein": 15,
+    "price": 1.20,
+    "time": 5,
+    "diet": "Vegetarian",
+    "ingredients": ["Greek yogurt", "Honey", "Nuts of choice", "Fruit of choice", "Chili sauce", "Red pepper", "Bean sprouts", "Spring onion", "Cabbage"],
+    "type": ["Breakfast"],
+    "image_url" :"https://usa.fage/sites/usa.fage/files/Fage_Recipe_Tiles_B_600x420_Apr21_Plain_Loaded_BowlsA_Hero_1291_RGB.jpg",
+    "steps": ["Add Greek yogurt to a bowl.", "Drizzle with honey.", "Top with chopped nuts and sliced fruit.", "Serve immediately."]
+  },
+  {
+    "name": "Tomato & Feta Omelette",
+    "calories": 340,
+    "protein": 19,
+    "price": 1.50,
+    "time": 10,
+    "diet": "Vegetarian",
+    "ingredients": ["Egg", "Tomato", "Feta", "Olive oil"],
+    "type": ["Breakfast"],
+    "image_url": "https://ketogenic.com/wp-content/uploads/2022/02/Greek-omelet-with-tomato-and-feta-700x512.png",
+    "steps": ["Whisk eggs with a pinch of salt.", "Heat olive oil in a pan, add chopped tomatoes and cook for 2 minutes.", "Sprinkle feta on top, fold, and serve."]
+  },
+    {
+    "name": "Overnight Oats",
+    "calories": 260,
+    "protein": 7,
+    "price": 0.80,
+    "time": 5,
+    "diet": "Vegan",
+    "ingredients": ["Oats", "Almond milk", "Chia seeds", "Banana"],
+    "type": ["Breakfast"],
+    "image_url": "https://www.purelykaylie.com/wp-content/uploads/2022/08/banana-overnight-oats-9.jpg",
+    "steps": ["Combine oats, chia seeds, and almond milk in a jar.", "Stir well and refrigerate overnight.", "In the morning, top with sliced banana and serve.", "Top with other toppings if desired."]
+  }
+]
