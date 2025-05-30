@@ -1,10 +1,5 @@
 import 'package:bitebudget/firebase_options.dart';
-
-import 'package:bitebudget/pages/welcome_page.dart';
-import 'package:bitebudget/pages/home.dart';
-import 'package:bitebudget/pages/test_page.dart';
 import 'package:bitebudget/router/router.dart';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';

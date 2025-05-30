@@ -6,6 +6,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:bitebudget/pages/meal_preferences_form.dart';
 import 'package:bitebudget/pages/home.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -17,10 +22,12 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   AppUser? _user;
   bool _loading = true;
+  File? _profileImage; // <-- Add this line
 
   @override
   void initState() {
     super.initState();
+    _loadProfileImage(); // <-- Add this line
     _fetchUser();
   }
 
@@ -36,12 +43,21 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _loadProfileImage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final path = prefs.getString('profile_image_path');
+    if (path != null && File(path).existsSync()) {
+      setState(() => _profileImage = File(path));
+    }
+  }
+
   Future<void> _navigateAndRefresh(Widget page) async {
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => page),
     );
-    // Refetch user info after returning
+    // Refetch user info and reload image after returning
     await _fetchUser();
+    await _loadProfileImage(); 
   }
 
   void _logout() async {
@@ -70,10 +86,15 @@ class _ProfilePageState extends State<ProfilePage> {
               const Text('Account', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
               CircleAvatar(
-                radius: 48,
-                backgroundColor: Colors.grey[300],
-                child: Icon(Icons.person, size: 48, color: Colors.white),
-              ),
+              radius: 48,
+              backgroundColor: Colors.grey[300],
+              backgroundImage: _profileImage != null
+                  ? FileImage(_profileImage!)
+                  : null,
+              child: _profileImage == null
+                  ? const Icon(Icons.person, size: 48, color: Colors.white)
+                  : null,
+            ),
               const SizedBox(height: 16),
               Text(
                 (_user?.name ?? '') +
@@ -132,11 +153,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _ageController = TextEditingController();
   final _weightController = TextEditingController();
   bool _isLoading = false;
+  File? _profileImage;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    _loadProfileImage();
   }
 
   void _loadUserData() {
@@ -147,6 +170,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
       _emailController.text = user.email;
       _ageController.text = user.age?.toString() ?? '';
       _weightController.text = user.weight?.toString() ?? '';
+    }
+  }
+
+  Future<void> _loadProfileImage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final path = prefs.getString('profile_image_path');
+    if (path != null && File(path).existsSync()) {
+      setState(() => _profileImage = File(path));
     }
   }
 
@@ -175,6 +206,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+
+  Future<void> _pickAndSaveImageLocally() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (pickedFile != null) {
+      final directory = await getApplicationDocumentsDirectory();
+      final fileName = path.basename(pickedFile.path);
+      final localImage = await File(pickedFile.path).copy('${directory.path}/$fileName');
+      setState(() => _profileImage = localImage);
+
+      // Save the path
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('profile_image_path', localImage.path);
     }
   }
 
@@ -213,15 +260,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   CircleAvatar(
                     radius: 48,
                     backgroundColor: Colors.grey[300],
-                    child: const Icon(Icons.person, size: 48, color: Colors.white),
+                    backgroundImage: _profileImage != null
+                        ? FileImage(_profileImage!)
+                        : null,
+                    child: _profileImage == null
+                        ? const Icon(Icons.person, size: 48, color: Colors.white)
+                        : null,
                   ),
                   Positioned(
                     bottom: 0,
                     right: 0,
-                    child: CircleAvatar(
-                      radius: 16,
-                      backgroundColor: Colors.white,
-                      child: Icon(Icons.camera_alt, color: Colors.grey[700]),
+                    child: GestureDetector(
+                      onTap: _pickAndSaveImageLocally,
+                      child: CircleAvatar(
+                        radius: 16,
+                        backgroundColor: Colors.white,
+                        child: Icon(Icons.camera_alt, color: Colors.grey[700]),
+                      ),
                     ),
                   ),
                 ],
