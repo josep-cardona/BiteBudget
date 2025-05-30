@@ -90,7 +90,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 ),
-                child: const Text('Edit Profile', style: TextStyle(fontSize: 16)),
+                child: const Text('Edit Profile', style: TextStyle(fontSize: 16, color: Colors.white)),
               ),
               const SizedBox(height: 16),
               Divider(thickness: 1, color: Colors.grey),
@@ -296,7 +296,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ),
               child: _isLoading
                   ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text('Save', style: TextStyle(fontSize: 18)),
+                  : const Text('Save', style: TextStyle(fontSize: 18, color: Colors.white)),
             ),
           ],
         ),
