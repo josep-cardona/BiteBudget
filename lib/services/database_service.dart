@@ -1,4 +1,3 @@
-
 import 'dart:math';
 
 import 'package:bitebudget/models/recipe.dart';
@@ -152,6 +151,13 @@ class DatabaseService_Recipe {
 
   }
   
-
-
+  Future<Map<String, Recipe>> getRecipesByNames(List<String> names) async {
+    final querySnapshot = await _recipesRef.where('name', whereIn: names).get();
+    final recipes = <String, Recipe>{};
+    for (var doc in querySnapshot.docs) {
+      final recipe = doc.data() as Recipe;
+      recipes[recipe.name] = recipe;
+    }
+    return recipes;
+  }
 }

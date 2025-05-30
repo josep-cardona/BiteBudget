@@ -49,4 +49,9 @@ class DatabaseServiceMealPlan {
     final mealPlanCollection = getMealPlanCollectionForUser(uid);
     await mealPlanCollection.doc(mealPlan.id).set(mealPlan.toFirestore());
   }
+
+  Future<void> deleteMealPlan(String mealPlanId, String uid) async {
+    final mealPlanCollection = getMealPlanCollectionForUser(uid);
+    await mealPlanCollection.doc(mealPlanId).delete();
+  }
 }
