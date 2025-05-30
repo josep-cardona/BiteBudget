@@ -34,24 +34,21 @@ class Recipe {
       SnapshotOptions? options, 
     ) {
       final data = snapshot.data() ?? {};
-
     return Recipe(
-      name: data?['name'] as String,
-      calories: (data?['calories'] as num).toDouble(),
-      protein: (data?['protein'] as num).toDouble(),
-      price: (data?['price'] as num).toDouble(),
-      time: (data?['time'] as num).toDouble(),
-      diet: data?['diet'] as String,
-      // Handling Lists (Arrays):
-      // Cast to List<dynamic> first, then map to the desired type.
-      ingredients: (data?['ingredients'] as List<dynamic>)
+      name: data['name'] as String,
+      calories: (data['calories'] as num).toDouble(),
+      protein: (data['protein'] as num).toDouble(),
+      price: (data['price'] as num).toDouble(),
+      time: (data['time'] as num).toDouble(),
+      diet: data['diet'] as String,
+      ingredients: (data['ingredients'] as List<dynamic>)
           .map((item) => item as String)
           .toList(),
-      type: (data?['type'] as List<dynamic>)
+      type: (data['type'] as List<dynamic>)
           .map((item) => item as String)
           .toList(),
-      image_url: data?['image_url'] as String?,
-      steps: (data?['steps'] as List<dynamic>?)?.map((item) => item as String).toList() ?? [],
+      image_url: data['image_url'] as String?,
+      steps: (data['steps'] as List<dynamic>?)?.map((item) => item as String).toList() ?? [],
     );
   }
 
