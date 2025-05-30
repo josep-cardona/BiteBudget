@@ -1,9 +1,6 @@
 import 'package:bitebudget/layout_scaffold.dart';
-import 'package:bitebudget/pages/account_page.dart';
 import 'package:bitebudget/pages/home.dart';
-
-import 'package:bitebudget/pages/recipe_page.dart';
-
+import 'package:bitebudget/pages/meal_plan_page.dart';
 import 'package:bitebudget/pages/test_button_page.dart';
 import 'package:bitebudget/pages/test_page.dart';
 import 'package:bitebudget/pages/welcome_page.dart';
@@ -19,7 +16,6 @@ final router = GoRouter(
     initialLocation: Routes.welcomePage,
     routes: [
         GoRoute(path: Routes.welcomePage, builder: (context, state) => const WelcomePage()),
-
         GoRoute(path: Routes.buttonPage, builder: (context, state) => const TestButtonPage()),
         StatefulShellRoute.indexedStack(
             builder: (context, state, navigationShell) => LayoutScaffold(
@@ -38,7 +34,7 @@ final router = GoRouter(
                     routes: [
                             GoRoute(
                             path: Routes.calendarPage,
-                            builder: (context, state) => const RecipePage(),
+                            builder: (context, state) => const MealPlanPage(),
                         ),
                     ],
                 ),
