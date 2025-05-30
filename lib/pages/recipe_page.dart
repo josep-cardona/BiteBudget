@@ -292,9 +292,9 @@ class _RecipePageState extends State<RecipePage> {
                                       ),
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: List.generate(4, (i) => Padding(
+                                        children: List.generate(widget.recipe.steps.length, (i) => Padding(
                                           padding: const EdgeInsets.only(bottom: 12.0),
-                                          child: Text('${i+1}. Step instruction placeholder', style: TextStyle(fontSize: 16)),
+                                          child: Text('${i+1}. ${widget.recipe.steps[i]}', style: TextStyle(fontSize: 16)),
                                         )),
                                       ),
                                     ),
