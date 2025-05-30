@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:bitebudget/services/auth_service.dart';
+import 'package:bitebudget/services/user_service.dart';
+import 'package:bitebudget/models/user.dart';
 import 'user_info_form.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -21,9 +21,8 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
 
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email'],
-  );
+  final AuthService _authService = AuthService();
+  final UserService _userService = UserService();
 
   @override
   void dispose() {
@@ -37,13 +36,20 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+      final user = await _authService.registerWithEmail(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
       );
-      _navigateToUserInfo();
-    } on FirebaseAuthException catch (e) {
-      _showError(e.message ?? 'Registration failed');
+      if (user != null) {
+        final appUser = AppUser(
+          uid: user.uid,
+          email: user.email ?? '',
+        );
+        await _userService.createUser(appUser);
+        _navigateToUserInfo();
+      }
+    } catch (e) {
+      _showError('Registration failed: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -52,36 +58,17 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<void> _signInWithGoogle() async {
     setState(() => _isLoading = true);
     try {
-      final googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return;
-      final googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-      await FirebaseAuth.instance.signInWithCredential(credential);
-      _navigateToUserInfo();
+      final user = await _authService.signInWithGoogle();
+      if (user != null) {
+        final appUser = AppUser(
+          uid: user.uid,
+          email: user.email ?? '',
+        );
+        await _userService.createUser(appUser);
+        _navigateToUserInfo();
+      }
     } catch (e) {
       _showError('Google sign-in failed: $e');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _signInWithApple() async {
-    setState(() => _isLoading = true);
-    try {
-      final appleCredential = await SignInWithApple.getAppleIDCredential(
-        scopes: [AppleIDAuthorizationScopes.email, AppleIDAuthorizationScopes.fullName],
-      );
-      final credential = OAuthProvider("apple.com").credential(
-        idToken: appleCredential.identityToken,
-        accessToken: appleCredential.authorizationCode,
-      );
-      await FirebaseAuth.instance.signInWithCredential(credential);
-      _navigateToUserInfo();
-    } catch (e) {
-      _showError('Apple sign-in failed: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -277,12 +264,6 @@ class _RegisterPageState extends State<RegisterPage> {
                         iconPath: 'assets/icons/google_icon.png',
                         text: 'Continue with Google',
                         onTap: _isLoading ? null : _signInWithGoogle,
-                      ),
-                      const SizedBox(height: 16),
-                      CustomSocialButton(
-                        iconPath: 'assets/icons/apple_icon.png',
-                        text: 'Continue with Apple',
-                        onTap: _isLoading ? null : _signInWithApple,
                       ),
                     ],
                   ),

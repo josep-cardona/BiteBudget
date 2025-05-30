@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:bitebudget/router/routes.dart';
+import 'package:bitebudget/services/user_service.dart';
 
 class MealPreferencesForm extends StatefulWidget {
-  final bool fromAccountPage;
-  const MealPreferencesForm({super.key, this.fromAccountPage = false});
+  final Map<String, dynamic>? userInfo;
+  final VoidCallback? onSaved;
+  const MealPreferencesForm({Key? key, this.userInfo, this.onSaved}) : super(key: key);
 
   @override
   State<MealPreferencesForm> createState() => _MealPreferencesFormState();
@@ -30,6 +31,21 @@ class _MealPreferencesFormState extends State<MealPreferencesForm> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    // Initialize fields with userInfo if available
+    if (widget.userInfo != null) {
+      setState(() {
+        _selectedDiet = widget.userInfo!['dietType'];
+        _kcalController.text = widget.userInfo!['caloriesGoal'] ?? '';
+        _proteinController.text = widget.userInfo!['proteinGoal'] ?? '';
+        _budgetController.text = widget.userInfo!['weeklyBudget'] ?? '';
+        _allergies.addAll(List<String>.from(widget.userInfo!['allergies'] ?? []));
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _kcalController.dispose();
     _proteinController.dispose();
@@ -41,7 +57,6 @@ class _MealPreferencesFormState extends State<MealPreferencesForm> {
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate() || _selectedDiet == null) return;
     setState(() => _isLoading = true);
-
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -50,26 +65,24 @@ class _MealPreferencesFormState extends State<MealPreferencesForm> {
       setState(() => _isLoading = false);
       return;
     }
-
     try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .set({
+      // Merge info from user_info_form (if any) with meal preferences
+      final Map<String, dynamic> allUserData = {
+        ...?widget.userInfo,
+        'uid': user.uid,
+        'email': user.email ?? '',
         'dietType': _selectedDiet,
         'caloriesGoal': _kcalController.text.trim(),
         'proteinGoal': _proteinController.text.trim(),
         'weeklyBudget': _budgetController.text.trim(),
         'allergies': _allergies,
         'mealPreferencesCompleted': true,
-      }, SetOptions(merge: true));
-
-      if (mounted) {
-        if (widget.fromAccountPage) {
-          Navigator.pop(context); // Go back to AccountPage
-        } else {
-          GoRouter.of(context).go(Routes.homePage); // Go to home after registration
-        }
+      };
+      await UserService().updateUser(user.uid, allUserData);
+      if (widget.onSaved != null) {
+        widget.onSaved!();
+      } else if (mounted) {
+        GoRouter.of(context).go(Routes.homePage);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
