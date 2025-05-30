@@ -68,4 +68,19 @@ class Recipe {
       'steps': steps,
     };
   }
+
+  factory Recipe.fromJson(Map<String, dynamic> json) {
+    return Recipe(
+      name: json['name'] as String,
+      calories: (json['calories'] as num).toDouble(),
+      protein: (json['protein'] as num).toDouble(),
+      price: (json['price'] as num).toDouble(),
+      time: (json['time'] as num).toDouble(),
+      diet: json['diet'] as String,
+      ingredients: (json['ingredients'] as List<dynamic>).cast<String>(),
+      type: (json['type'] as List<dynamic>).cast<String>(),
+      steps: (json['steps'] as List<dynamic>).cast<String>(),
+      image_url: json['image_url'] as String?,
+    );
+  }
 }
