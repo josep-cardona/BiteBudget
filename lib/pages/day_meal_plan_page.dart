@@ -82,6 +82,9 @@ class _DayMealPlanPageState extends State<DayMealPlanPage> {
       );
       setState(() {
         _dayPlan = updatedDay;
+      });
+      await _fetchRecipes(); // Refetch recipes to update images and UI
+      setState(() {
         _updating = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Recipe updated!')));
@@ -218,7 +221,6 @@ class _RecipePickerDialogState extends State<RecipePickerDialog> {
   List<String> _recipes = [];
   List<String> _filtered = [];
   bool _loading = true;
-  String _query = '';
 
   @override
   void initState() {
@@ -238,7 +240,6 @@ class _RecipePickerDialogState extends State<RecipePickerDialog> {
 
   void _search(String q) {
     setState(() {
-      _query = q;
       _filtered = _recipes.where((r) => r.toLowerCase().contains(q.toLowerCase())).toList();
     });
   }

@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../models/meal_plan.dart';
 
 const String MEAL_PLAN_COLLECTION = "mealPlans";
