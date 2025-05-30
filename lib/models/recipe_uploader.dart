@@ -14,7 +14,6 @@ class Recipe_Uploader {
       type: ['Dinner', 'Italian', 'Comfort Food'],
       steps: ['Step 1'],
       image_url: 'image'
-      
     );
 
   static void addNewRecipes(DatabaseService_Recipe db){

@@ -13,6 +13,7 @@ class Recipe {
   String? image_url;
   List<String> steps;
 
+
   Recipe({
     required this.name,
     required this.calories,
@@ -28,9 +29,12 @@ class Recipe {
 
   // Factory Constructor: From Firestore Map to Dart Object
   // This method is used when you read data from Firestore.
-  factory Recipe.fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot,
-    SnapshotOptions? options,) {
-    final data = snapshot.data();
+    factory Recipe.fromFirestore(
+      DocumentSnapshot<Map<String, dynamic>> snapshot, 
+      SnapshotOptions? options, 
+    ) {
+      final data = snapshot.data() ?? {};
+
     return Recipe(
       name: data?['name'] as String,
       calories: (data?['calories'] as num).toDouble(),

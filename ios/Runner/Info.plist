@@ -48,13 +48,17 @@
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.***REMOVED***-1o7fp51prdpbs1iululus2iadv0j9dko</string>
+				<string>com.googleusercontent.apps.***REMOVED***-k7u9stc5se2upvndvpedvkks5klimqis</string>
 			</array>
 		</dict>
 	</array>
+	<key>GIDClientID</key>
+	<string>***REMOVED***-k7u9stc5se2upvndvpedvkks5klimqis.apps.googleusercontent.com</string>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>This app uses Sign in with Apple for authentication.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to your photo library to set your profile picture.</string>
 </dict>
 </plist>

@@ -257,16 +257,6 @@ class _MealPreferencesFormState extends State<MealPreferencesForm> {
                           ),
                         ),
                       ),
-                      TextButton(
-                        onPressed: _addAllergy,
-                        child: const Text(
-                          'Add Allergy',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                   if (_allergies.isNotEmpty)
@@ -278,6 +268,7 @@ class _MealPreferencesFormState extends State<MealPreferencesForm> {
                             .map((allergy) => Chip(
                                   label: Text(allergy),
                                   onDeleted: () => _removeAllergy(allergy),
+                                  backgroundColor: Colors.grey[300], // Set chip color to gray
                                 ))
                             .toList(),
                       ),
