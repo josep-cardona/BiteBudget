@@ -28,7 +28,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _databaseService = DatabaseService_Recipe();
-    _featuredRecipes = _databaseService.getRandomRecipes(2);
+    _featuredRecipes = _databaseService.getRandomRecipes(4);
     _popularRecipes = _databaseService.getFilteredRecipes(types: current_category);
     _userFuture = _fetchUser();
     HomePage.userUpdateNotifier.addListener(_reloadUser);
@@ -245,28 +245,21 @@ class _HomePageState extends State<HomePage> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: recipe.image_url != null && recipe.image_url!.isNotEmpty
-                      ? (() {
-                          print('popularCard: image_url is NOT empty: \\${recipe.image_url}');
-                          return ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.network(
-                              recipe.image_url!,
-                              width: 161.28,
-                              height: 128,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                print('popularCard: Image load error: \\${error}');
-                                return Container(
-                                  color: const Color.fromARGB(255, 196, 92, 92),
-                                );
-                              },
-                            ),
-                          );
-                        })()
-                      : (() {
-                          print('popularCard: image_url is empty or null for recipe: \\${recipe.name}');
-                          return null;
-                        })(),
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.network(
+                            recipe.image_url!,
+                            width: 161.28,
+                            height: 128,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: const Color.fromARGB(255, 196, 92, 92),
+                              );
+                            },
+                          ),
+                        )
+                      : null,
                 ),
                 Positioned(
                   right: 12,
@@ -464,28 +457,21 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               child: recipe.image_url != null && recipe.image_url!.isNotEmpty
-                  ? (() {
-                      print('featuredRecipeCard: image_url is NOT empty: \\${recipe.image_url}');
-                      return ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.network(
-                          recipe.image_url!,
-                          width: 264,
-                          height: 172,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            print('featuredRecipeCard: Image load error: \\${error}');
-                            return Container(
-                              color: const Color(0xFF6FB9BE),
-                            );
-                          },
-                        ),
-                      );
-                    })()
-                  : (() {
-                      print('featuredRecipeCard: image_url is empty or null for recipe: \\${recipe.name}');
-                      return null;
-                    })(),
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.network(
+                        recipe.image_url!,
+                        width: 264,
+                        height: 172,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: const Color(0xFF6FB9BE),
+                          );
+                        },
+                      ),
+                    )
+                  : null,
             ),
           ),
           Positioned(
