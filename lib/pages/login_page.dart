@@ -181,6 +181,8 @@ class _LoginPageState extends State<LoginPage> {
                       if (value.length < 6) return 'Minimum 6 characters required';
                       return null;
                     },
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) => _isLoading ? null : _loginWithEmail(),
                   ),
                   const SizedBox(height: 16),
 
