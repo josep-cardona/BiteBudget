@@ -209,6 +209,9 @@ class _RegisterPageState extends State<RegisterPage> {
                       }
                       return null;
                     },
+                    onFieldSubmitted: (_) {
+                      if (!_isLoading) _registerWithEmail();
+                    },
                   ),
                   const SizedBox(height: 24),
 
