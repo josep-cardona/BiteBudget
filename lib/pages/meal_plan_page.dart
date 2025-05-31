@@ -4,6 +4,7 @@ import 'package:bitebudget/services/database_service.dart';
 import 'dart:math';
 import '../models/meal_plan.dart';
 import '../services/meal_plan_service.dart';
+import '../services/meal_plan_generator.dart';
 import 'day_meal_plan_page.dart';
 
 class MealPlanPage extends StatefulWidget {
@@ -83,22 +84,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No recipes available.')));
       return;
     }
-    final random = Random();
-    List<DayPlan> days = List.generate(7, (dayIdx) {
-      String? pickRandom() => allRecipes[random.nextInt(allRecipes.length)].name;
-      return DayPlan(
-        breakfast: pickRandom(),
-        lunch: pickRandom(),
-        snack: pickRandom(),
-        dinner: pickRandom(),
-      );
-    });
-    final mealPlan = MealPlan(
-      id: '',
-      startDate: monday,
-      endDate: monday.add(const Duration(days: 6)),
-      days: days,
-    );
+    final mealPlan = generateMealPlan(monday: monday, allRecipes: allRecipes);
     await mealPlanService.addMealPlan(mealPlan, user.uid);
     await _fetchMealPlanForWeek(monday);
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Meal plan generated!')));
@@ -116,16 +102,8 @@ class _MealPlanPageState extends State<MealPlanPage> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No recipes available.')));
       return;
     }
-    final random = Random();
-    List<DayPlan> days = List.generate(7, (dayIdx) {
-      String? pickRandom() => allRecipes[random.nextInt(allRecipes.length)].name;
-      return DayPlan(
-        breakfast: pickRandom(),
-        lunch: pickRandom(),
-        snack: pickRandom(),
-        dinner: pickRandom(),
-      );
-    });
+    // Use the same generator as for initial generation
+    final newMealPlan = generateMealPlan(monday: monday, allRecipes: allRecipes);
     // Find the plan for this week
     final plan = await mealPlanService.getMealPlanForWeek(user.uid, monday);
     if (plan != null) {
@@ -133,7 +111,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
         id: plan.id,
         startDate: monday,
         endDate: monday.add(const Duration(days: 6)),
-        days: days,
+        days: newMealPlan.days,
       );
       await mealPlanService.updateMealPlan(updatedPlan, user.uid);
       await _fetchMealPlanForWeek(monday);
