@@ -265,12 +265,12 @@ class _RecipePageState extends State<RecipePage> {
                                             ),
                                             const SizedBox(width: 12),
                                             Expanded(
-                                              child: Text(widget.recipe.ingredients[i], 
+                                              child: Text(widget.recipe.ingredients[i][0], 
                                               style: TextStyle(fontSize: 18, fontVariations: const [FontVariation('wght', 700)],),),
                                             ),
                                             Padding(
                                               padding: const EdgeInsets.only(right: 16.0),
-                                              child: Text('Amount', style: TextStyle(color: Colors.grey[700])),
+                                              child: Text(widget.recipe.ingredients[i][1], style: TextStyle(color: Colors.grey[700])),
                                             ),
                                           ],
                                         ),
