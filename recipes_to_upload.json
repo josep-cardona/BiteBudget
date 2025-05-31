@@ -1,38 +1,62 @@
 [
   {
-    "name": "Greek Yogurt Bowl",
-    "calories": 280,
-    "protein": 15,
-    "price": 1.20,
+    "name": "Cucumber Sticks & Hummus",
+    "calories": 120,
+    "protein": 3,
+    "price": 0.70,
     "time": 5,
-    "diet": "Vegetarian",
-    "ingredients": ["Greek yogurt", "Honey", "Nuts of choice", "Fruit of choice", "Chili sauce", "Red pepper", "Bean sprouts", "Spring onion", "Cabbage"],
-    "type": ["Breakfast"],
-    "image_url" :"https://usa.fage/sites/usa.fage/files/Fage_Recipe_Tiles_B_600x420_Apr21_Plain_Loaded_BowlsA_Hero_1291_RGB.jpg",
-    "steps": ["Add Greek yogurt to a bowl.", "Drizzle with honey.", "Top with chopped nuts and sliced fruit.", "Serve immediately."]
+    "diet": "Vegan",
+    "ingredients": ["Cucumber", "Hummus"],
+    "type": ["Snack"],
+    "image_url" :"https://i.imgur.com/tlpvx5E.jpeg",
+    "steps": ["Slice cucumber into sticks.", "Serve with a side of hummus.", "Optionally dirzzle some olive oil and sprinkle some paprika on top of the hummus"] 
   },
   {
-    "name": "Tomato & Feta Omelette",
-    "calories": 340,
-    "protein": 19,
-    "price": 1.50,
-    "time": 10,
-    "diet": "Vegetarian",
-    "ingredients": ["Egg", "Tomato", "Feta", "Olive oil"],
-    "type": ["Breakfast"],
-    "image_url": "https://ketogenic.com/wp-content/uploads/2022/02/Greek-omelet-with-tomato-and-feta-700x512.png",
-    "steps": ["Whisk eggs with a pinch of salt.", "Heat olive oil in a pan, add chopped tomatoes and cook for 2 minutes.", "Sprinkle feta on top, fold, and serve."]
-  },
-    {
-    "name": "Overnight Oats",
-    "calories": 260,
-    "protein": 7,
+    "name": "Carrot & Tahini Dip",
+    "calories": 100,
+    "protein": 2,
     "price": 0.80,
     "time": 5,
     "diet": "Vegan",
-    "ingredients": ["Oats", "Almond milk", "Chia seeds", "Banana"],
-    "type": ["Breakfast"],
-    "image_url": "https://www.purelykaylie.com/wp-content/uploads/2022/08/banana-overnight-oats-9.jpg",
-    "steps": ["Combine oats, chia seeds, and almond milk in a jar.", "Stir well and refrigerate overnight.", "In the morning, top with sliced banana and serve.", "Top with other toppings if desired."]
+    "ingredients": ["Carrot", "Tahini", "Lemon"],
+    "type": ["Snack"],
+    "image_url": "https://i.imgur.com/w6eB5hd.jpeg",
+    "steps": ["Cut carrots into sticks.", "Mix tahini with lemon juice for dip.", "Serve together."]
+  },
+    {
+    "name": "Greek Yogurt & Berries",
+    "calories": 130,
+    "protein": 2,
+    "price": 1.10,
+    "time": 5,
+    "diet": "Vegetarian",
+    "ingredients": ["Greek yogurt", "Berries"],
+    "type": ["Snack"],
+    "image_url": "https://i.imgur.com/5p6N9vs.jpeg",
+    "steps": ["Add Greek yogurt to a bowl.", "Top with berries."]
+  },
+    {
+    "name": "Baked Apples with Cinnamon",
+    "calories": 180,
+    "protein": 2,
+    "price": 1,
+    "time": 25,
+    "diet": "Vegan",
+    "ingredients": ["Apple", "Cinnamon", "Walnuts"],
+    "type": ["Snack"],
+    "image_url": "https://i.imgur.com/vll2DFB.jpeg",
+    "steps": ["Core and slice apples.", "Sprinkle with cinnamon and chopped walnuts.", "Bake at 180°C for 20 minutes.", "Serve warm"]
+  },
+    {
+    "name": "Dark Chocolate Covered Dates",
+    "calories": 160,
+    "protein": 2,
+    "price": 1,
+    "time": 5,
+    "diet": "Vegan",
+    "ingredients": ["Dates", "Dark chocolate", "Sea salt"],
+    "type": ["Snack"],
+    "image_url": "https://i.imgur.com/KzkCuu3.jpeg",
+    "steps": ["Pit dates.", "Dip in melted dark chocolate, sprinkle with salt.", "Chill until set."]
   }
 ]
