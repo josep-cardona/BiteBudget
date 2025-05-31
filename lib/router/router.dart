@@ -1,8 +1,8 @@
 import 'package:bitebudget/layout_scaffold.dart';
 import 'package:bitebudget/pages/home.dart';
 import 'package:bitebudget/pages/meal_plan_page.dart';
+import 'package:bitebudget/pages/shopping_list_page.dart';
 import 'package:bitebudget/pages/test_button_page.dart';
-import 'package:bitebudget/pages/test_page.dart';
 import 'package:bitebudget/pages/welcome_page.dart';
 import 'package:bitebudget/pages/profile_page.dart';
 import 'package:bitebudget/router/routes.dart';
@@ -42,7 +42,7 @@ final router = GoRouter(
                     routes: [
                             GoRoute(
                             path: Routes.shopPage,
-                            builder: (context, state) => const TestPage(),
+                            builder: (context, state) => const ShoppingListPage(),
                         ),
                     ],
                 ),
