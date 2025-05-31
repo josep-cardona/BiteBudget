@@ -163,10 +163,282 @@ class _MealPlanPageState extends State<MealPlanPage> {
     _fetchMealPlanForWeek(_currentMonday);
   }
 
+  // --- UI Helper Widgets ---
+  Widget _buildWeekSelector(DateTime weekStart, DateTime weekEnd, DateTime currentMonday, bool isCurrentWeek) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            width: 41,
+            height: 41,
+            decoration: ShapeDecoration(
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              shadows: [
+                BoxShadow(
+                  color: Color.fromARGB(44, 5, 51, 54),
+                  blurRadius: 16,
+                  offset: Offset(0, 2),
+                  spreadRadius: 0,
+                )
+              ],
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_left),
+              tooltip: 'Previous week',
+              onPressed: () => _changeWeek(-1),
+              style: ButtonStyle(
+                overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                  (Set<MaterialState> states) {
+                    if (states.contains(MaterialState.hovered)) {
+                      return Colors.grey.withOpacity(0.2); // Gray hover
+                    }
+                    return null;
+                  },
+                ),
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16), // Match container
+                  ),
+                ),
+              ),
+            ),
+          ),
+          
+          Text(
+            '${weekStart.day}/${weekStart.month}/${weekStart.year} - ${weekEnd.day}/${weekEnd.month}/${weekEnd.year}',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          Container(
+            width: 41,
+            height: 41,
+            decoration: ShapeDecoration(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            ),
+            shadows: [
+            BoxShadow(
+            color: Color.fromARGB(44, 5, 51, 54),
+            blurRadius: 16,
+            offset: Offset(0, 2),
+            spreadRadius: 0,
+            )
+            ],
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_right),
+              tooltip: 'Next week',
+              onPressed: () => _changeWeek(1),
+              style: ButtonStyle(
+                overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                  (Set<MaterialState> states) {
+                    if (states.contains(MaterialState.hovered)) {
+                      return Colors.grey.withOpacity(0.2); // Gray hover
+                    }
+                    return null;
+                  },
+                ),
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16), // Match container
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGoToCurrentWeekButton(DateTime currentMonday) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4.0),
+      child: ElevatedButton.icon(
+        icon: const Icon(Icons.today),
+        label: const Text('Go to Current Week'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blueAccent,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+        onPressed: () {
+          setState(() {
+            _currentMonday = currentMonday;
+          });
+          _fetchMealPlanForWeek(currentMonday);
+        },
+      ),
+    );
+  }
+
+  Widget _buildTodayCard(DayPlan todayPlan, int todayIdx) {
+    return Center(
+      child: SizedBox(
+        width: 380,
+        child: GestureDetector(
+          onTap: _mealPlan == null ? null : () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => DayMealPlanPage(
+                  dayPlan: todayPlan,
+                  dayIndex: todayIdx,
+                  weekPlanId: _mealPlan!.id,
+                  weekMonday: _currentMonday,
+                  weekDays: _mealPlan!.days,
+                ),
+              ),
+            );
+            if (mounted) {
+              await _fetchMealPlanForWeek(_currentMonday);
+            }
+          },
+          child: Card(
+            color: Colors.amber[50],
+            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: ListTile(
+              title: const Text('Today', style: TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Breakfast:  \t${todayPlan.breakfast ?? "-"}'),
+                  Text('Lunch:      \t${todayPlan.lunch ?? "-"}'),
+                  Text('Snack:      \t${todayPlan.snack ?? "-"}'),
+                  Text('Dinner:     \t${todayPlan.dinner ?? "-"}'),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text('Calories: ${_getTotal('calories', todayIdx).toStringAsFixed(0)}'),
+                      const SizedBox(width: 12),
+                      Text('Protein: ${_getTotal('protein', todayIdx).toStringAsFixed(0)}g'),
+                      const SizedBox(width: 12),
+                      Text('Price: ${_getTotal('price', todayIdx).toStringAsFixed(2)}€'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWeekPlanDivider() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        children: const [
+          Expanded(child: Divider()),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8.0),
+            child: Text('Full Week Plan'),
+          ),
+          Expanded(child: Divider()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGenerateButton() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: ElevatedButton(
+        onPressed: () => _generateMealPlanForWeek(_currentMonday),
+        child: const Text('Generate Meal Plan'),
+      ),
+    );
+  }
+
+  Widget _buildRegenerateDeleteRow() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () => _regenerateMealPlanForWeek(_currentMonday),
+              child: const Text('Regenerate Meal Plan'),
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            onPressed: () => _deleteMealPlanForWeek(_currentMonday),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Icon(Icons.delete, color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDayCard(DayPlan day, String dayName, DateTime date, int index) {
+    double calories = _getTotal('calories', index);
+    double protein = _getTotal('protein', index);
+    double price = _getTotal('price', index);
+    return Center(
+      child: SizedBox(
+        width: 380,
+        child: Card(
+          margin: const EdgeInsets.all(8),
+          child: ListTile(
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(dayName),
+                Text('${date.day}/${date.month}', style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.grey)),
+              ],
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Breakfast:  \t${day.breakfast ?? "-"}'),
+                Text('Lunch:      \t${day.lunch ?? "-"}'),
+                Text('Snack:      \t${day.snack ?? "-"}'),
+                Text('Dinner:     \t${day.dinner ?? "-"}'),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Text('Calories: ${calories.toStringAsFixed(0)}'),
+                    const SizedBox(width: 12),
+                    Text('Protein: ${protein.toStringAsFixed(0)}g'),
+                    const SizedBox(width: 12),
+                    Text('Price: ${price.toStringAsFixed(2)}€'),
+                  ],
+                ),
+              ],
+            ),
+            onTap: _mealPlan == null ? null : () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => DayMealPlanPage(
+                    dayPlan: day,
+                    dayIndex: index,
+                    weekPlanId: _mealPlan!.id,
+                    weekMonday: _currentMonday,
+                    weekDays: _mealPlan!.days,
+                  ),
+                ),
+              );
+              if (mounted) {
+                await _fetchMealPlanForWeek(_currentMonday);
+              }
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return Container(color:Colors.white,child: Center(child: CircularProgressIndicator()));
     }
     final weekStart = _currentMonday;
     final weekEnd = _currentMonday.add(const Duration(days: 6));
@@ -175,212 +447,38 @@ class _MealPlanPageState extends State<MealPlanPage> {
     final isCurrentWeek = weekStart.year == currentMonday.year && weekStart.month == currentMonday.month && weekStart.day == currentMonday.day;
     int todayIdx = isCurrentWeek ? today.weekday - 1 : -1;
     final todayPlan = (todayIdx >= 0 && _mealPlan?.days.length == 7) ? _mealPlan!.days[todayIdx] : null;
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_left),
-                tooltip: 'Previous week',
-                onPressed: () => _changeWeek(-1),
-              ),
-              Text(
-                '${weekStart.day}/${weekStart.month}/${weekStart.year} - ${weekEnd.day}/${weekEnd.month}/${weekEnd.year}',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              IconButton(
-                icon: const Icon(Icons.arrow_right),
-                tooltip: 'Next week',
-                onPressed: () => _changeWeek(1),
-              ),
-            ],
-          ),
-        ),
-        if (!isCurrentWeek)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 4.0),
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.today),
-              label: const Text('Go to Current Week'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              ),
-              onPressed: () {
-                setState(() {
-                  _currentMonday = currentMonday;
-                });
-                _fetchMealPlanForWeek(currentMonday);
-              },
-            ),
-          ),
-        if (isCurrentWeek && todayPlan != null) ...[
-          Center(
-            child: SizedBox(
-              width: 380, // Match the width of other cards
-              child: GestureDetector(
-                onTap: _mealPlan == null ? null : () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => DayMealPlanPage(
-                        dayPlan: todayPlan,
-                        dayIndex: todayIdx,
-                        weekPlanId: _mealPlan!.id,
-                        weekMonday: _currentMonday,
-                        weekDays: _mealPlan!.days,
-                      ),
-                    ),
-                  );
-                  if (mounted) {
-                    await _fetchMealPlanForWeek(_currentMonday);
-                  }
-                },
-                child: Card(
-                  color: Colors.amber[50],
-                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: ListTile(
-                    title: const Text('Today', style: TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Breakfast:  \t${todayPlan.breakfast ?? "-"}'),
-                        Text('Lunch:      \t${todayPlan.lunch ?? "-"}'),
-                        Text('Snack:      \t${todayPlan.snack ?? "-"}'),
-                        Text('Dinner:     \t${todayPlan.dinner ?? "-"}'),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Text('Calories:  ${_getTotal('calories', todayIdx).toStringAsFixed(0)}'),
-                            const SizedBox(width: 12),
-                            Text('Protein:  ${_getTotal('protein', todayIdx).toStringAsFixed(0)}g'),
-                            const SizedBox(width: 12),
-                            Text('Price:  ${_getTotal('price', todayIdx).toStringAsFixed(2)}€'),
-                          ],
-                        ),
-                      ],
-                    ),
+    return Container(
+      color: Colors.white, // Set background color to white
+      child: Column(
+        children: [
+          const SizedBox(height: 20,),
+          _buildWeekSelector(weekStart, weekEnd, currentMonday, isCurrentWeek),
+          if (!isCurrentWeek) _buildGoToCurrentWeekButton(currentMonday),
+          if (isCurrentWeek && todayPlan != null) ...[
+            _buildTodayCard(todayPlan, todayIdx),
+            _buildWeekPlanDivider(),
+          ],
+          if (_mealPlan == null)
+            _buildGenerateButton()
+          else
+            _buildRegenerateDeleteRow(),
+          Expanded(
+            child: _mealPlan == null
+                ? const Center(child: Text('No meal plan found for this week.'))
+                : ListView.builder(
+                    itemCount: 7,
+                    itemBuilder: (context, index) {
+                      final day = _mealPlan!.days[index];
+                      String dayName = [
+                        'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+                      ][index];
+                      final date = weekStart.add(Duration(days: index));
+                      return _buildDayCard(day, dayName, date, index);
+                    },
                   ),
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4.0),
-            child: Row(
-              children: const [
-                Expanded(child: Divider()),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Text('Full Week Plan'),
-                ),
-                Expanded(child: Divider()),
-              ],
-            ),
           ),
         ],
-        if (_mealPlan == null) ...[
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              onPressed: () => _generateMealPlanForWeek(_currentMonday),
-              child: const Text('Generate Meal Plan'),
-            ),
-          ),
-        ] else ...[
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _regenerateMealPlanForWeek(_currentMonday),
-                    child: const Text('Regenerate Meal Plan'),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: () => _deleteMealPlanForWeek(_currentMonday),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  child: const Icon(Icons.delete, color: Colors.white),
-                ),
-              ],
-            ),
-          ),
-        ],
-        Expanded(
-          child: _mealPlan == null
-              ? const Center(child: Text('No meal plan found for this week.'))
-              : ListView.builder(
-                  itemCount: 7,
-                  itemBuilder: (context, index) {
-                    final day = _mealPlan!.days[index];
-                    String dayName = [
-                      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-                    ][index];
-                    final date = weekStart.add(Duration(days: index));
-                    double calories = _getTotal('calories', index);
-                    double protein = _getTotal('protein', index);
-                    double price = _getTotal('price', index);
-                    return Center(
-                      child: SizedBox(
-                        width: 380, // or MediaQuery.of(context).size.width * 0.92 for responsive
-                        child: Card(
-                          margin: const EdgeInsets.all(8),
-                          child: ListTile(
-                            title: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(dayName),
-                                Text('${date.day}/${date.month}', style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.grey)),
-                              ],
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Breakfast:  \t${day.breakfast ?? "-"}'),
-                                Text('Lunch:      \t${day.lunch ?? "-"}'),
-                                Text('Snack:      \t${day.snack ?? "-"}'),
-                                Text('Dinner:     \t${day.dinner ?? "-"}'),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    Text('Calories:  ${calories.toStringAsFixed(0)}'),
-                                    const SizedBox(width: 12),
-                                    Text('Protein:  ${protein.toStringAsFixed(0)}g'),
-                                    const SizedBox(width: 12),
-                                    Text('Price:  ${price.toStringAsFixed(2)}€'),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            onTap: _mealPlan == null ? null : () async {
-                              await Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => DayMealPlanPage(
-                                    dayPlan: day,
-                                    dayIndex: index,
-                                    weekPlanId: _mealPlan!.id,
-                                    weekMonday: _currentMonday,
-                                    weekDays: _mealPlan!.days,
-                                  ),
-                                ),
-                              );
-                              if (mounted) {
-                                await _fetchMealPlanForWeek(_currentMonday);
-                              }
-                            },
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-        ),
-      ],
+      ),
     );
   }
 }
