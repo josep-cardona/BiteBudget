@@ -22,7 +22,22 @@ class RecipeUploader {
       final jsonString = utf8.decode(fileBytes);
       final List<dynamic> jsonList = jsonDecode(jsonString);
       
-      final recipes = jsonList.map((json) => Recipe.fromJson(json)).toList();
+      final recipes = jsonList.map((json) {
+        // Convert ingredients from 2D list to List<String> (ingredient;amount) for upload
+        if (json is Map<String, dynamic> && json['ingredients'] is List) {
+          json = Map<String, dynamic>.from(json); // Make a copy to avoid mutating original
+          json['ingredients'] = (json['ingredients'] as List).map((item) {
+            if (item is List && item.length >= 2) {
+              return "${item[0]};${item[1]}";
+            } else if (item is String) {
+              return item;
+            } else {
+              return item.toString();
+            }
+          }).toList();
+        }
+        return Recipe.fromJson(json);
+      }).toList();
       
       // 4. Upload to Firestore
       for (final recipe in recipes) {

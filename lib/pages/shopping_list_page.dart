@@ -44,7 +44,11 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
     final recipeMap = await recipeService.getRecipesByNames(recipeNames.toList());
     final ingredients = <String>{};
     for (final recipe in recipeMap.values) {
-      ingredients.addAll(recipe.ingredients);
+      for (final pair in recipe.ingredients) {
+        if (pair.isNotEmpty && pair[0].trim().isNotEmpty) {
+          ingredients.add(pair[0].trim());
+        }
+      }
     }
     setState(() {
       _items = ingredients.toList().map((e) => _ShoppingItem(name: e)).toList();
