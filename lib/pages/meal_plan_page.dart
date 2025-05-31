@@ -32,15 +32,18 @@ class _MealPlanPageState extends State<MealPlanPage> {
   Future<void> _fetchMealPlanForWeek(DateTime monday) async {
     setState(() { _loading = true; });
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    if (user == null) {
+      setState(() { _loading = false; });
+      return;
+    }
     final service = DatabaseServiceMealPlan();
     final plan = await service.getMealPlanForWeek(user.uid, monday);
     setState(() {
       _mealPlan = plan;
-      _loading = false;
       _dayTotals.clear(); // Clear previous totals before recomputing
     });
     await _computeDayTotals();
+    if (mounted) setState(() { _loading = false; }); // Only set loading to false after totals are computed
   }
 
   Future<void> _computeDayTotals() async {
@@ -156,6 +159,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
   }
 
   void _changeWeek(int offset) {
+    if (_loading) return; // Prevent changing week while loading
     setState(() {
       _currentMonday = _currentMonday.add(Duration(days: 7 * offset));
       _dayTotals.clear(); // Clear totals when changing week
@@ -190,7 +194,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
             child: IconButton(
               icon: const Icon(Icons.arrow_left),
               tooltip: 'Previous week',
-              onPressed: () => _changeWeek(-1),
+              onPressed: _loading ? null : () => _changeWeek(-1), // Disable if loading
               style: ButtonStyle(
                 overlayColor: MaterialStateProperty.resolveWith<Color?>(
                   (Set<MaterialState> states) {
@@ -217,23 +221,23 @@ class _MealPlanPageState extends State<MealPlanPage> {
             width: 41,
             height: 41,
             decoration: ShapeDecoration(
-            color: Colors.white,
-            shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            ),
-            shadows: [
-            BoxShadow(
-            color: Color.fromARGB(44, 5, 51, 54),
-            blurRadius: 16,
-            offset: Offset(0, 2),
-            spreadRadius: 0,
-            )
-            ],
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              shadows: [
+                BoxShadow(
+                  color: Color.fromARGB(44, 5, 51, 54),
+                  blurRadius: 16,
+                  offset: Offset(0, 2),
+                  spreadRadius: 0,
+                )
+              ],
             ),
             child: IconButton(
               icon: const Icon(Icons.arrow_right),
               tooltip: 'Next week',
-              onPressed: () => _changeWeek(1),
+              onPressed: _loading ? null : () => _changeWeek(1), // Disable if loading
               style: ButtonStyle(
                 overlayColor: MaterialStateProperty.resolveWith<Color?>(
                   (Set<MaterialState> states) {
