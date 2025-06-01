@@ -17,6 +17,19 @@ class UserService {
   }
 
   Future<void> updateUser(String uid, Map<String, dynamic> data) async {
+    // Ensure double fields are stored as double
+    if (data.containsKey('caloriesGoal')) {
+      final val = data['caloriesGoal'];
+      data['caloriesGoal'] = val is String ? double.tryParse(val) : (val is num ? val.toDouble() : null);
+    }
+    if (data.containsKey('proteinGoal')) {
+      final val = data['proteinGoal'];
+      data['proteinGoal'] = val is String ? double.tryParse(val) : (val is num ? val.toDouble() : null);
+    }
+    if (data.containsKey('weeklyBudget')) {
+      final val = data['weeklyBudget'];
+      data['weeklyBudget'] = val is String ? double.tryParse(val) : (val is num ? val.toDouble() : null);
+    }
     await _usersRef.doc(uid).update(data);
   }
 }

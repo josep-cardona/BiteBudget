@@ -133,7 +133,7 @@ class _RecipePageState extends State<RecipePage> {
                           ),
                         ),
 
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 24),
                         Center(
                           child: Container(
                             padding: const EdgeInsets.all(4),
@@ -219,7 +219,7 @@ class _RecipePageState extends State<RecipePage> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 24),
                         AnimatedSwitcher(
                           duration: Duration(milliseconds: 300),
                           transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
@@ -228,7 +228,8 @@ class _RecipePageState extends State<RecipePage> {
                                   key: ValueKey('ingredients'),
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('Ingredients', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                                    Text('Ingredients', style: TextStyle(color: Colors.black, fontSize: 18,fontVariations: [FontVariation('wght', 700),],)),
+                                    Text('${widget.recipe.ingredients.length} Items', style: TextStyle(color: const Color(0xFF748189), fontSize: 16,fontVariations: [FontVariation('wght', 400),],),),
                                     const SizedBox(height: 8),
                                     ListView.separated(
                                       shrinkWrap: true,
@@ -264,12 +265,12 @@ class _RecipePageState extends State<RecipePage> {
                                             ),
                                             const SizedBox(width: 12),
                                             Expanded(
-                                              child: Text(widget.recipe.ingredients[i], 
+                                              child: Text(widget.recipe.ingredients[i][0], 
                                               style: TextStyle(fontSize: 18, fontVariations: const [FontVariation('wght', 700)],),),
                                             ),
                                             Padding(
                                               padding: const EdgeInsets.only(right: 16.0),
-                                              child: Text('Amount', style: TextStyle(color: Colors.grey[700])),
+                                              child: Text(widget.recipe.ingredients[i][1], style: TextStyle(color: Colors.grey[700])),
                                             ),
                                           ],
                                         ),
@@ -281,20 +282,31 @@ class _RecipePageState extends State<RecipePage> {
                                   key: ValueKey('instructions'),
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('Recipe', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                                    const SizedBox(height: 8),
+                                    Text('Recipe', style: TextStyle(color: Colors.black, fontSize: 18,fontVariations: [FontVariation('wght', 700),],)),
+                                    Text('${widget.recipe.steps.length} Steps', style: TextStyle(color: const Color(0xFF748189), fontSize: 16,fontVariations: [FontVariation('wght', 400),],),),
+                                    const SizedBox(height: 12),
                                     Container(
                                       width: double.infinity,
-                                      padding: EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        color: Color(0xFFF6F6F6),
-                                        borderRadius: BorderRadius.circular(12),
+                                      padding: EdgeInsets.only(top: 24, bottom: 24, left: 16, right: 16),
+                                      decoration: ShapeDecoration(
+                                        color: Colors.white,
+                                        shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                        ),
+                                        shadows: [
+                                        BoxShadow(
+                                        color: Color(0x19053336),
+                                        blurRadius: 16,
+                                        offset: Offset(0, 2),
+                                        spreadRadius: 0,
+                                        )
+                                        ],
                                       ),
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: List.generate(widget.recipe.steps.length, (i) => Padding(
-                                          padding: const EdgeInsets.only(bottom: 12.0),
-                                          child: Text('${i+1}. ${widget.recipe.steps[i]}', style: TextStyle(fontSize: 16)),
+                                          padding: const EdgeInsets.only(bottom: 12.0, top: 12, left: 6, right: 6),
+                                          child: Text('${i+1}. ${widget.recipe.steps[i]}', style: TextStyle(color: const Color(0xFF757575), fontSize: 16,fontVariations: [FontVariation('wght', 400),],)),
                                         )),
                                       ),
                                     ),

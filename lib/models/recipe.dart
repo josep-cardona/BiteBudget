@@ -8,7 +8,7 @@ class Recipe {
   double price;
   double time;
   String diet;
-  List<String> ingredients;
+  List<List<String>> ingredients; // Now a 2D list: [[ingredient, amount], ...]
   List<String> type;
   String? image_url;
   List<String> steps;
@@ -29,11 +29,29 @@ class Recipe {
 
   // Factory Constructor: From Firestore Map to Dart Object
   // This method is used when you read data from Firestore.
-    factory Recipe.fromFirestore(
-      DocumentSnapshot<Map<String, dynamic>> snapshot, 
-      SnapshotOptions? options, 
-    ) {
-      final data = snapshot.data() ?? {};
+  factory Recipe.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> snapshot, 
+    SnapshotOptions? options, 
+  ) {
+    final data = snapshot.data() ?? {};
+    // Parse ingredients: List<String> (ingredient;amount) -> List<List<String>>
+    List<List<String>> parsedIngredients = [];
+    if (data['ingredients'] is List) {
+      parsedIngredients = (data['ingredients'] as List<dynamic>).map<List<String>>((item) {
+        if (item is String && item.contains(';')) {
+          final parts = item.split(';');
+          if (parts.length >= 2) {
+            return [parts[0], parts.sublist(1).join(';')]; // In case amount contains ';'
+          } else {
+            return [parts[0], ''];
+          }
+        } else if (item is String) {
+          return [item, ''];
+        } else {
+          return [item.toString(), ''];
+        }
+      }).toList();
+    }
     return Recipe(
       name: data['name'] as String,
       calories: (data['calories'] as num).toDouble(),
@@ -41,9 +59,7 @@ class Recipe {
       price: (data['price'] as num).toDouble(),
       time: (data['time'] as num).toDouble(),
       diet: data['diet'] as String,
-      ingredients: (data['ingredients'] as List<dynamic>)
-          .map((item) => item as String)
-          .toList(),
+      ingredients: parsedIngredients,
       type: (data['type'] as List<dynamic>)
           .map((item) => item as String)
           .toList(),
@@ -55,6 +71,16 @@ class Recipe {
   // Method: To Dart Object to Firestore Map
   // This method is used when you write data to Firestore.
   Map<String, dynamic> toFirestore() {
+    // Convert ingredients: List<List<String>> -> List<String> (ingredient;amount)
+    final List<String> ingredientsForFirestore = ingredients.map((pair) {
+      if (pair.length >= 2) {
+        return "${pair[0]};${pair[1]}";
+      } else if (pair.isNotEmpty) {
+        return pair[0];
+      } else {
+        return "";
+      }
+    }).toList();
     return {
       'name': name,
       'calories': calories,
@@ -62,7 +88,7 @@ class Recipe {
       'price': price,
       'time': time,
       'diet': diet,
-      'ingredients': ingredients,
+      'ingredients': ingredientsForFirestore,
       'type': type,
       if (image_url != null) 'image_url': image_url,
       'steps': steps,
@@ -70,6 +96,24 @@ class Recipe {
   }
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
+    // Accepts ingredients as List<String> (ingredient;amount) or List<dynamic> (ingredient only)
+    List<List<String>> parsedIngredients = [];
+    if (json['ingredients'] is List) {
+      parsedIngredients = (json['ingredients'] as List<dynamic>).map<List<String>>((item) {
+        if (item is String && item.contains(';')) {
+          final parts = item.split(';');
+          if (parts.length >= 2) {
+            return [parts[0], parts.sublist(1).join(';')];
+          } else {
+            return [parts[0], ''];
+          }
+        } else if (item is String) {
+          return [item, ''];
+        } else {
+          return [item.toString(), ''];
+        }
+      }).toList();
+    }
     return Recipe(
       name: json['name'] as String,
       calories: (json['calories'] as num).toDouble(),
@@ -77,7 +121,7 @@ class Recipe {
       price: (json['price'] as num).toDouble(),
       time: (json['time'] as num).toDouble(),
       diet: json['diet'] as String,
-      ingredients: (json['ingredients'] as List<dynamic>).cast<String>(),
+      ingredients: parsedIngredients,
       type: (json['type'] as List<dynamic>).cast<String>(),
       steps: (json['steps'] as List<dynamic>).cast<String>(),
       image_url: json['image_url'] as String?,
