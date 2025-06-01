@@ -156,7 +156,7 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text('Shopping List', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600)),
+        title: null, // Remove the AppBar title
         centerTitle: false,
         iconTheme: const IconThemeData(color: Colors.grey),
       ),
@@ -172,6 +172,7 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Restore the black title
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 32),
                 child: Text('Shopping List', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28)),

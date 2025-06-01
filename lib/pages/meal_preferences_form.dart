@@ -37,9 +37,12 @@ class _MealPreferencesFormState extends State<MealPreferencesForm> {
     if (widget.userInfo != null) {
       setState(() {
         _selectedDiet = widget.userInfo!['dietType'];
-        _kcalController.text = widget.userInfo!['caloriesGoal'] ?? '';
-        _proteinController.text = widget.userInfo!['proteinGoal'] ?? '';
-        _budgetController.text = widget.userInfo!['weeklyBudget'] ?? '';
+        final caloriesGoal = widget.userInfo!['caloriesGoal'];
+        final proteinGoal = widget.userInfo!['proteinGoal'];
+        final weeklyBudget = widget.userInfo!['weeklyBudget'];
+        _kcalController.text = caloriesGoal != null ? caloriesGoal.toString() : '';
+        _proteinController.text = proteinGoal != null ? proteinGoal.toString() : '';
+        _budgetController.text = weeklyBudget != null ? weeklyBudget.toString() : '';
         _allergies.addAll(List<String>.from(widget.userInfo!['allergies'] ?? []));
       });
     }
@@ -72,9 +75,9 @@ class _MealPreferencesFormState extends State<MealPreferencesForm> {
         'uid': user.uid,
         'email': user.email ?? '',
         'dietType': _selectedDiet,
-        'caloriesGoal': _kcalController.text.trim(),
-        'proteinGoal': _proteinController.text.trim(),
-        'weeklyBudget': _budgetController.text.trim(),
+        'caloriesGoal': double.tryParse(_kcalController.text.trim()),
+        'proteinGoal': double.tryParse(_proteinController.text.trim()),
+        'weeklyBudget': double.tryParse(_budgetController.text.trim()),
         'allergies': _allergies,
         'mealPreferencesCompleted': true,
       };
