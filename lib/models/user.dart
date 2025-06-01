@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AppUser {
   final String uid;
@@ -68,4 +69,20 @@ class AppUser {
     'allergies': allergies,
     'mealPreferencesCompleted': mealPreferencesCompleted,
   };
+
+  /// Fetch the current AppUser from FirebaseAuth and Firestore
+  static Future<AppUser?> fetchCurrentUser() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return null;
+    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    if (!doc.exists) return null;
+    return AppUser.fromFirestore(doc);
+  }
+
+  /// Fetch an AppUser by uid
+  static Future<AppUser?> fetchByUid(String uid) async {
+    final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    if (!doc.exists) return null;
+    return AppUser.fromFirestore(doc);
+  }
 }
