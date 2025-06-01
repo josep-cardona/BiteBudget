@@ -76,16 +76,281 @@ Recipe _pickRandom(List<Recipe> list, Random random) {
   return list[random.nextInt(list.length)];
 }
 
-MealPlan generateMealPlan({
+List<FlatMealPlan> generateInitialPopulation({
+  required int populationSize,
+  required List<Recipe> allRecipes,
+}) {
+  final List<FlatMealPlan> population = [];
+  final buckets = bucketizeByMealType(allRecipes);
+
+  for (int i = 0; i < populationSize; i++) {
+    population.add(generateRandomMealPlan(buckets));
+  }
+
+  return population;
+}
+
+double evaluateFitness(
+  FlatMealPlan plan, {
+  double? dailyCaloriesGoal,
+  double? dailyProteinGoal,
+  double? weeklyBudget,
+  double? dailyTimeLimit,
+  FlatMealPlan? previousWeekPlan,
+  double weightCalories = 1.0,
+  double weightProtein = 4.0, // Protein error penalized more
+}) {
+  final List<Recipe> genes = plan.genes;
+  final int totalDays = 7;
+
+  double totalPrice = 0;
+  double totalTime = 0;
+  final Map<String, int> recipeCount = {};
+  double totalCalorieError = 0;
+  double totalProteinError = 0;
+
+  final Set<String> lastWeekRecipes = previousWeekPlan != null
+      ? previousWeekPlan.genes.map((r) => r.name).toSet()
+      : {};
+
+  int previousWeekRepeats = 0;
+
+  for (int day = 0; day < totalDays; day++) {
+    double dayCalories = 0;
+    double dayProtein = 0;
+    double dayTime = 0;
+
+    for (int i = 0; i < 4; i++) {
+      Recipe recipe = genes[day * 4 + i];
+      dayCalories += recipe.calories;
+      dayProtein += recipe.protein;
+      dayTime += recipe.time;
+      totalPrice += recipe.price;
+      totalTime += recipe.time;
+
+      recipeCount[recipe.name] = (recipeCount[recipe.name] ?? 0) + 1;
+
+      if (lastWeekRecipes.contains(recipe.name)) {
+        previousWeekRepeats++;
+      }
+    }
+
+    if (dailyCaloriesGoal != null) {
+      totalCalorieError += (dayCalories - dailyCaloriesGoal).abs() / dailyCaloriesGoal;
+    }
+
+    if (dailyProteinGoal != null) {
+      totalProteinError += (dayProtein - dailyProteinGoal).abs() / dailyProteinGoal;
+    }
+
+    if (dailyTimeLimit != null && dayTime > dailyTimeLimit) {
+      totalTime += (dayTime - dailyTimeLimit); // only penalize excess
+    }
+  }
+
+  // Repetition penalty (same week)
+  int repeatPenalty = recipeCount.values.where((count) => count > 1).fold(0, (sum, count) => sum + (count - 1));
+
+  // Budget penalty
+  double penalty = 0;
+  if (weeklyBudget != null && totalPrice > weeklyBudget) {
+    penalty += (totalPrice - weeklyBudget) / weeklyBudget;
+  }
+
+  if (dailyTimeLimit != null) {
+    final double weeklyTimeLimit = dailyTimeLimit * totalDays;
+    if (totalTime > weeklyTimeLimit) {
+      penalty += (totalTime - weeklyTimeLimit) / weeklyTimeLimit;
+    }
+  }
+
+  // Weighted errors
+  double calorieError = dailyCaloriesGoal != null ? totalCalorieError / totalDays : 0;
+  double proteinError = dailyProteinGoal != null ? totalProteinError / totalDays : 0;
+
+  double weightedError = (weightCalories * calorieError) + (weightProtein * proteinError);
+
+  // Repetition penalties
+  double sameWeekRepetitionPenalty = repeatPenalty * 0.2;
+  double previousWeekPenalty = previousWeekRepeats * 0.05;
+
+  // Final fitness
+  double fitness = 1 / (1 + weightedError + penalty + sameWeekRepetitionPenalty + previousWeekPenalty);
+
+  return fitness;
+}
+
+
+FlatMealPlan tournamentSelection(List<FlatMealPlan> population, Map<FlatMealPlan, double> fitnessScores, {int tournamentSize = 3}) {
+  final random = Random();
+  List<FlatMealPlan> tournament = [];
+
+  // Randomly pick k individuals
+  for (int i = 0; i < tournamentSize; i++) {
+    final candidate = population[random.nextInt(population.length)];
+    tournament.add(candidate);
+  }
+
+  // Pick the one with the best fitness
+  tournament.sort((a, b) => fitnessScores[b]!.compareTo(fitnessScores[a]!));
+  return tournament.first;
+}
+
+
+FlatMealPlan crossoverByDay(FlatMealPlan parent1, FlatMealPlan parent2) {
+  final random = Random();
+  int dayIndex = random.nextInt(6) + 1; // pick between 1 and 6
+  int crossoverPoint = dayIndex * 4;
+
+  List<Recipe> childGenes = [
+    ...parent1.genes.sublist(0, crossoverPoint),
+    ...parent2.genes.sublist(crossoverPoint)
+  ];
+
+  return FlatMealPlan(childGenes);
+}
+
+void mutate(
+  FlatMealPlan plan,
+  Map<String, List<Recipe>> mealTypeBuckets, {
+  double mutationRate = 0.05, // 5% chance per gene
+}) {
+  final random = Random();
+
+  for (int i = 0; i < plan.genes.length; i++) {
+    if (random.nextDouble() < mutationRate) {
+      // Identify which meal type this gene is (0 = breakfast, 1 = lunch, ...)
+      int mealIndex = i % 4;
+      String mealType;
+
+      switch (mealIndex) {
+        case 0:
+          mealType = 'breakfast';
+          break;
+        case 1:
+          mealType = 'lunch';
+          break;
+        case 2:
+          mealType = 'snack';
+          break;
+        case 3:
+          mealType = 'dinner';
+          break;
+        default:
+          mealType = 'lunch'; // fallback
+      }
+
+      List<Recipe> options = mealTypeBuckets[mealType]!;
+      Recipe current = plan.genes[i];
+
+      // Avoid picking the same recipe again
+      Recipe replacement;
+      do {
+        replacement = options[random.nextInt(options.length)];
+      } while (replacement.name == current.name && options.length > 1);
+
+      plan.genes[i] = replacement;
+    }
+  }
+}
+
+Future<MealPlan> evolveMealPlan({
+  required List<Recipe> allRecipes,
+  required DateTime monday,
+  int populationSize = 50,
+  int generations = 100,
+  double mutationRate = 0.05,
+  double? calorieGoal,
+  double? proteinGoal,
+  double? weeklyBudget,
+  double? weeklyTime,
+  FlatMealPlan? previousWeek,
+  int earlyStoppingRounds = 15,
+}) async {
+  final random = Random();
+  final mealBuckets = bucketizeByMealType(allRecipes);
+
+  // Step 1: Generate initial population
+  List<FlatMealPlan> population = List.generate(
+    populationSize,
+    (_) => generateRandomMealPlan(mealBuckets),
+  );
+
+  FlatMealPlan bestIndividual = population.first;
+  double bestFitness = -double.infinity;
+
+  int roundsWithoutImprovement = 0;
+
+  for (int gen = 0; gen < generations; gen++) {
+    // Step 2: Evaluate fitness
+    final fitnessScores = {
+      for (var individual in population)
+        individual: evaluateFitness(
+          individual,
+          dailyCaloriesGoal: calorieGoal,
+          dailyProteinGoal: proteinGoal,
+          weeklyBudget: weeklyBudget,
+          dailyTimeLimit: weeklyTime,
+          previousWeekPlan: previousWeek,
+        )
+    };
+
+    // Track the best individual
+    for (var entry in fitnessScores.entries) {
+      if (entry.value > bestFitness) {
+        bestFitness = entry.value;
+        bestIndividual = entry.key;
+        roundsWithoutImprovement = 0; // reset on improvement
+
+      }
+    }
+
+    print('Generation $gen best fitness: ${bestFitness.toStringAsFixed(4)}');
+
+    // Early stopping condition
+    roundsWithoutImprovement++;
+    if (roundsWithoutImprovement >= earlyStoppingRounds) {
+      print('Early stopping triggered at generation $gen');
+      break;
+    }
+
+    // Step 3: Create new generation
+    List<FlatMealPlan> newGeneration = [];
+
+    while (newGeneration.length < populationSize) {
+      FlatMealPlan parent1 = tournamentSelection(population, fitnessScores);
+      FlatMealPlan parent2 = tournamentSelection(population, fitnessScores);
+
+      FlatMealPlan child = crossoverByDay(parent1, parent2);
+      mutate(child, mealBuckets, mutationRate: mutationRate);
+
+      newGeneration.add(child);
+    }
+
+    population = newGeneration;
+  }
+
+  print("GA finished");
+  // Return the best plan converted into structured format
+  return bestIndividual.toMealPlan(monday);
+}
+
+
+
+
+
+Future<MealPlan> generateMealPlan({
   required DateTime monday,
   required List<Recipe> allRecipes,
   required AppUser user
-}){
-  final buckets = bucketizeByMealType(allRecipes);
-  final plan = generateRandomMealPlan(buckets);
-  print(user.name);
+}) async {
+  //Random smart planning
+  //final buckets = bucketizeByMealType(allRecipes);
+  //final plan = generateRandomMealPlan(buckets);
 
-  return plan.toMealPlan(monday);
+  //GA:
+  
+  return await evolveMealPlan(allRecipes: allRecipes, monday: monday, calorieGoal: user.caloriesGoal, proteinGoal: user.proteinGoal, weeklyBudget: user.weeklyBudget);
 }
 
 

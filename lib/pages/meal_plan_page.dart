@@ -113,7 +113,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('User not loaded.')));
       return;
     }
-    final mealPlan = generateMealPlan(monday: monday, allRecipes: allRecipes, user: _user!);
+    final mealPlan = await generateMealPlan(monday: monday, allRecipes: allRecipes, user: _user!);
     await mealPlanService.addMealPlan(mealPlan, user.uid);
     await _fetchMealPlanForWeek(monday);
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Meal plan generated!')));
@@ -138,7 +138,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
       return;
     }
     // Use the same generator as for initial generation
-    final newMealPlan = generateMealPlan(monday: monday, allRecipes: allRecipes, user: _user!);
+    final newMealPlan = await generateMealPlan(monday: monday, allRecipes: allRecipes, user: _user!);
     // Find the plan for this week
     final plan = await mealPlanService.getMealPlanForWeek(user.uid, monday);
     if (plan != null) {
