@@ -11,9 +11,9 @@ class AppUser {
   final double? weight;
   final DateTime? createdAt;
   final String? dietType;
-  final String? caloriesGoal;
-  final String? proteinGoal;
-  final String? weeklyBudget;
+  final double? caloriesGoal;
+  final double? proteinGoal;
+  final double? weeklyBudget;
   final List<String>? allergies;
   final bool? mealPreferencesCompleted;
 
@@ -46,9 +46,9 @@ class AppUser {
       weight: (data['weight'] as num?)?.toDouble(),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
       dietType: data['dietType'],
-      caloriesGoal: data['caloriesGoal'],
-      proteinGoal: data['proteinGoal'],
-      weeklyBudget: data['weeklyBudget'],
+      caloriesGoal: (data['caloriesGoal'] as num?)?.toDouble(),
+      proteinGoal: (data['proteinGoal'] as num?)?.toDouble(),
+      weeklyBudget: (data['weeklyBudget'] as num?)?.toDouble(),
       allergies: (data['allergies'] as List<dynamic>?)?.map((e) => e as String).toList(),
       mealPreferencesCompleted: data['mealPreferencesCompleted'],
     );
