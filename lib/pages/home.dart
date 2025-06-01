@@ -65,7 +65,7 @@ class _HomePageState extends State<HomePage> {
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               children: [
-                const SizedBox(height: 20.0),
+                const SizedBox(height: 10.0),
                 welcomeDaytime(),
                 welcomeName(_user),
                 Padding(
