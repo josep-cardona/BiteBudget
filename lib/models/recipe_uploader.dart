@@ -23,18 +23,29 @@ class RecipeUploader {
       final List<dynamic> jsonList = jsonDecode(jsonString);
       
       final recipes = jsonList.map((json) {
-        // Convert ingredients from 2D list to List<String> (ingredient;amount) for upload
+        // Convert ingredients from 3D list to List<String> (ingredient;amount;imageUrl) for upload
         if (json is Map<String, dynamic> && json['ingredients'] is List) {
           json = Map<String, dynamic>.from(json); // Make a copy to avoid mutating original
           json['ingredients'] = (json['ingredients'] as List).map((item) {
-            if (item is List && item.length >= 2) {
-              return "${item[0]};${item[1]}";
-            } else if (item is String) {
-              return item;
+            if (item is String && item.contains(';')) {
+              final parts = item.split(';');
+              // Always return [name, amount, imageUrl] (pad with empty strings if missing)
+              if (parts.length >= 3) {
+                return [parts[0].trim(), parts[1].trim(), parts[2].trim()];
+              } else if (parts.length == 2) {
+                return [parts[0].trim(), parts[1].trim(), ''];
+              } else {
+                return [parts[0].trim(), '', ''];
+              }
+            } else if (item is List) {
+              // Already a list
+              return item.map((e) => e.toString().trim()).toList();
             } else {
-              return item.toString();
+              return [item.toString().trim(), '', ''];
             }
           }).toList();
+          // Debug print to verify structure
+          print('Uploading recipe: \\${json['name']} ingredients: \\${json['ingredients']}');
         }
         return Recipe.fromJson(json);
       }).toList();

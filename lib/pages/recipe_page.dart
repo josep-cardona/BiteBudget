@@ -110,6 +110,7 @@ class _RecipePageState extends State<RecipePage> {
                           ),
                         ),
                         const SizedBox(height: 10),
+                        /*
                         Text(
                           'This Pudding is the perfect fresh breakfast for a hot summer morning',
                           style: const TextStyle(
@@ -118,6 +119,7 @@ class _RecipePageState extends State<RecipePage> {
                             fontVariations: [FontVariation('wght', 400)],
                           ),
                         ),
+                        */
                         const SizedBox(height: 10),
                         Center(
                           child: Wrap(
@@ -127,8 +129,8 @@ class _RecipePageState extends State<RecipePage> {
                             children: [
                               _buildItem('${widget.recipe.type.isNotEmpty ? widget.recipe.type[0] : ''}', Icons.watch_later_outlined),
                               _buildItem('${widget.recipe.diet}', Icons.info_outline),
-                              _buildItem('${widget.recipe.calories} Kcal', Icons.question_mark_outlined),
-                              _buildItem('${widget.recipe.protein}g protein', Icons.question_mark_outlined),
+                              _buildItem('${widget.recipe.calories} Kcal', Icons.local_fire_department),
+                              _buildItem('${widget.recipe.protein}g protein', Icons.fitness_center),
                             ],
                           ),
                         ),

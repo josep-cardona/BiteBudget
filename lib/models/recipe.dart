@@ -75,18 +75,8 @@ class Recipe {
   // Method: To Dart Object to Firestore Map
   // This method is used when you write data to Firestore.
   Map<String, dynamic> toFirestore() {
-    // Convert ingredients: List<List<String>> -> List<List<String>>
-    final List<List<String>> ingredientsForFirestore = ingredients.map((triple) {
-      if (triple.length >= 3) {
-        return [triple[0], triple[1], triple[2]];
-      } else if (triple.length == 2) {
-        return [triple[0], triple[1], ''];
-      } else if (triple.length == 1) {
-        return [triple[0], '', ''];
-      } else {
-        return ['', '', ''];
-      }
-    }).toList();
+    // Convert ingredients: List<List<String>> -> List<String> (semicolon-separated)
+    final List<String> ingredientsForFirestore = ingredients.map((triple) => triple.join(';')).toList();
     return {
       'name': name,
       'calories': calories,
