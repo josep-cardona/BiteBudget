@@ -108,22 +108,41 @@ Future<void> addRecipe(Recipe recipe) async {
     double? minCalories, // Optional minimum calories filter
     double? maxCalories, // Optional maximum calories filter
     List<String>? types, // Optional list of recipe types to filter by
-    // Add other optional filters as needed (e.g., minPrice, maxTime, ingredients)
+    List<String>? excludeIngredients, // New: list of ingredients to exclude
   }) async {
     try {
       Query query = _recipesRef; 
 
+      // Smart diet filter
+      List<String>? allowedDiets;
       if (diet != null && diet.isNotEmpty) {
-        query = query.where('diet', isEqualTo: diet);
+        if (diet == 'Omnivore') {
+          // Omnivore can have all diets
+          allowedDiets = null;
+        } else if (diet == 'Vegetarian') {
+          // Vegetarian can have Vegetarian and Vegan
+          allowedDiets = ['Vegetarian', 'Vegan'];
+        } else if (diet == 'Vegan') {
+          // Vegan can only have Vegan
+          allowedDiets = ['Vegan'];
+        } else {
+          // Any other diet, strict match
+          allowedDiets = [diet];
+        }
+      }
+      if (allowedDiets != null) {
+        if (allowedDiets.length == 1) {
+          query = query.where('diet', isEqualTo: allowedDiets.first);
+        } else {
+          query = query.where('diet', whereIn: allowedDiets);
+        }
       }
 
       if (minCalories != null) {
         query = query.where('calories', isGreaterThanOrEqualTo: minCalories);
       }
 
-      
       if (maxCalories != null) {
-        // Make sure maxCalories is not less than minCalories if both are provided
         if (minCalories != null && maxCalories < minCalories) {
           print('Warning: maxCalories is less than minCalories. This query will likely return no results.');
         }
@@ -131,24 +150,31 @@ Future<void> addRecipe(Recipe recipe) async {
       }
 
       if (types != null && types.isNotEmpty) {
-        // Firestore allows array-contains-any for up to 10 items.
         if (types.length <= 10) {
             query = query.where('type', arrayContainsAny: types);
         } else {
             print('Warning: Filtering by more than 10 types is not supported in a single arrayContainsAny query.');
-            // You'd need to do multiple queries or reconsider the filtering approach.
             return [];
         }
       }
 
       final querySnapshot = await query.get();
+      var recipes = querySnapshot.docs.map((doc) => doc.data() as Recipe).toList();
 
-      return querySnapshot.docs.map((doc) => doc.data() as Recipe).toList();
+      // Exclude recipes containing any of the excluded ingredients
+      if (excludeIngredients != null && excludeIngredients.isNotEmpty) {
+        recipes = recipes.where((recipe) =>
+          !recipe.ingredients.any((ingredient) =>
+            excludeIngredients.contains(ingredient[0]) // ingredient[0] is the name
+          )
+        ).toList();
+      }
+
+      return recipes;
     } catch (e) {
       print('Error getting recipes: $e');
       return []; // Return an empty list on error
     }
-
   }
   
   Future<Map<String, Recipe>> getRecipesByNames(List<String> names) async {

@@ -85,4 +85,5 @@ class AppUser {
     if (!doc.exists) return null;
     return AppUser.fromFirestore(doc);
   }
+
 }
