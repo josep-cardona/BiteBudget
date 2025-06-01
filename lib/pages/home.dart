@@ -1,10 +1,8 @@
 import 'package:bitebudget/models/recipe.dart';
 import 'package:bitebudget/services/database_service.dart';
-import 'package:bitebudget/services/user_service.dart';
 import 'package:bitebudget/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:bitebudget/pages/recipe_page.dart';
 
 // Convert HomePage to a StatefulWidget
@@ -21,138 +19,95 @@ class _HomePageState extends State<HomePage> {
   late Future<List<Recipe>> _featuredRecipes;
   late Future<List<Recipe>> _popularRecipes;
   List<String> current_category = ['Breakfast'];
-  final UserService _userService = UserService();
-  Future<AppUser?>? _userFuture;
+  AppUser? _user;
 
   @override
   void initState() {
     super.initState();
     _databaseService = DatabaseService_Recipe();
     _featuredRecipes = _databaseService.getRandomRecipes(4);
-    _popularRecipes = _databaseService.getFilteredRecipes(types: current_category);
-    _userFuture = _fetchUser();
-    HomePage.userUpdateNotifier.addListener(_reloadUser);
+    _fetchAndSetUser();
+    HomePage.userUpdateNotifier.addListener(_fetchAndSetUser);
   }
 
-  @override
-  void dispose() {
-    HomePage.userUpdateNotifier.removeListener(_reloadUser);
-    super.dispose();
-  }
-
-  void _reloadUser() {
+  Future<void> _fetchAndSetUser() async {
+    final user = await AppUser.fetchCurrentUser();
     setState(() {
-      _userFuture = _fetchUser();
+      _user = user;
+      _popularRecipes = _databaseService.getFilteredRecipes(
+        types: current_category,
+        diet: _user?.dietType,
+      );
     });
-  }
-
-  Future<AppUser?> _fetchUser() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return null;
-    return await _userService.getUser(user.uid);
   }
 
   void _onCategorySelected(String category) {
     setState(() {
       current_category = [category];
-      _popularRecipes = _databaseService.getFilteredRecipes(types: current_category);
+      _popularRecipes = _databaseService.getFilteredRecipes(
+        types: current_category,
+        diet: _user?.dietType,
+      );
     });
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Only refresh user if needed, not on every dependency change
-    // _refreshUser();
-  }
-
-  @override
-  void didUpdateWidget(covariant HomePage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Always reload user when the widget is updated (e.g., after navigation)
-    setState(() {
-      _userFuture = _fetchUser();
-    });
+  void dispose() {
+    HomePage.userUpdateNotifier.removeListener(_fetchAndSetUser);
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-
-      //Build your entire screen content within the body
-      body: FutureBuilder<AppUser?>(
-        future: _userFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final user = snapshot.data;
-          return SafeArea( // Use SafeArea to avoid content overlapping status bar/notches
-            child: ListView( // Align children to the start (left)
+      body: _user == null
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
               children: [
-                SizedBox(height: 20.0),
+                const SizedBox(height: 20.0),
                 welcomeDaytime(),
-                welcomeName(user),
+                welcomeName(_user),
                 Padding(
-                  padding: EdgeInsets.only(
-                    left: 16,
-                    top: 16,
-                    bottom: 10
-                  ),
+                  padding: const EdgeInsets.only(left: 16, top: 16, bottom: 10),
                   child: const Text(
                     'Featured',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 20,
-                      fontVariations: [FontVariation('wght', 700),],
+                      fontVariations: [FontVariation('wght', 700)],
                     ),
                   ),
                 ),
                 //Fetch featureds
                 featuredMeals(),
                 Padding(
-                  padding: EdgeInsets.only(
-                    left: 16,
-                    top: 16,
-                    bottom: 10
-                  ),
+                  padding: const EdgeInsets.only(left: 16, top: 16, bottom: 10),
                   child: const Text(
                     'Category',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 20,
-                      fontVariations: [FontVariation('wght', 700),],
+                      fontVariations: [FontVariation('wght', 700)],
                     ),
                   ),
                 ),
                 categories(),
                 Padding(
-                  padding: EdgeInsets.only(
-                    left: 16,
-                    top: 16,
-                    bottom: 10
-                  ),
+                  padding: const EdgeInsets.only(left: 16, top: 16, bottom: 10),
                   child: const Text(
                     'Popular Recipes',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 20,
-                      fontVariations: [FontVariation('wght', 700),],
+                      fontVariations: [FontVariation('wght', 700)],
                     ),
                   ),
                 ),
                 popularMeals(),
-                Padding(
-                  padding: EdgeInsets.only(
-                    bottom: 20
-                  ),
-                )
+                const Padding(padding: EdgeInsets.only(bottom: 20)),
               ],
             ),
-          );
-        },
-      ),
     );
   }
 
