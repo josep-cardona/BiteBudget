@@ -60,20 +60,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Future<void> _signInWithApple() async {
-    setState(() => _isLoading = true);
-    try {
-      final user = await _authService.signInWithApple();
-      if (user != null && mounted) {
-        GoRouter.of(context).go(Routes.homePage);
-      }
-    } catch (e) {
-      _showError('Apple sign-in failed: $e');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
@@ -262,12 +248,6 @@ class _LoginPageState extends State<LoginPage> {
                         iconPath: 'assets/icons/google_icon.png',
                         text: 'Continue with Google',
                         onTap: _isLoading ? null : _signInWithGoogle,
-                      ),
-                      const SizedBox(height: 16),
-                      CustomSocialButton(
-                        iconPath: 'assets/icons/apple_icon.png',
-                        text: 'Continue with Apple',
-                        onTap: _isLoading ? null : _signInWithApple,
                       ),
                     ],
                   ),
