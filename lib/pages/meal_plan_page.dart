@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:bitebudget/services/database_service.dart';
-import 'dart:math';
 import '../models/meal_plan.dart';
 import '../services/meal_plan_service.dart';
 import '../services/meal_plan_generator.dart';
 import 'day_meal_plan_page.dart';
+import '../models/user.dart';
+import 'home.dart'; // Import HomePage for userUpdateNotifier
 
 class MealPlanPage extends StatefulWidget {
   const MealPlanPage({Key? key}) : super(key: key);
@@ -19,6 +20,10 @@ class _MealPlanPageState extends State<MealPlanPage> {
   bool _loading = true;
   DateTime _currentMonday = _getMondayOf(DateTime.now());
   Map<int, Map<String, double>> _dayTotals = {};
+  AppUser? _user;
+  
+  // Add a listener reference
+  late final VoidCallback _userUpdateListener;
 
   static DateTime _getMondayOf(DateTime date) {
     return DateTime(date.year, date.month, date.day).subtract(Duration(days: date.weekday - 1));
@@ -27,7 +32,23 @@ class _MealPlanPageState extends State<MealPlanPage> {
   @override
   void initState() {
     super.initState();
-    _fetchMealPlanForWeek(_currentMonday);
+    _userUpdateListener = () async {
+      await _fetchUserAndPlan(_currentMonday);
+    };
+    HomePage.userUpdateNotifier.addListener(_userUpdateListener);
+    _fetchUserAndPlan(_currentMonday);
+  }
+
+  @override
+  void dispose() {
+    HomePage.userUpdateNotifier.removeListener(_userUpdateListener);
+    super.dispose();
+  }
+
+  Future<void> _fetchUserAndPlan(DateTime monday) async {
+    setState(() { _loading = true; });
+    _user = await AppUser.fetchCurrentUser();
+    await _fetchMealPlanForWeek(monday);
   }
 
   Future<void> _fetchMealPlanForWeek(DateTime monday) async {
@@ -50,10 +71,12 @@ class _MealPlanPageState extends State<MealPlanPage> {
   Future<void> _computeDayTotals() async {
     if (_mealPlan == null) return;
     final recipeService = DatabaseService_Recipe();
+    // Fetch all recipes filtered by user diet
+    final allRecipes = await recipeService.getFilteredRecipes(diet: _user?.dietType);
     for (int i = 0; i < _mealPlan!.days.length; i++) {
       final day = _mealPlan!.days[i];
       final names = [day.breakfast, day.lunch, day.snack, day.dinner].whereType<String>().toList();
-      final recipes = await recipeService.getRecipesByNames(names);
+      final recipes = { for (var r in allRecipes) r.name : r };
       double calories = 0, protein = 0, price = 0;
       for (var name in names) {
         final r = recipes[name];
@@ -77,14 +100,20 @@ class _MealPlanPageState extends State<MealPlanPage> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
     final recipeService = DatabaseService_Recipe();
+    // Use filtered recipes by user diet
+    final allRecipes = await recipeService.getFilteredRecipes(diet: _user?.dietType);
     final mealPlanService = DatabaseServiceMealPlan();
-    final allRecipes = await recipeService.getAllRecipes();
     if (allRecipes.isEmpty) {
       setState(() { _loading = false; });
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No recipes available.')));
       return;
     }
-    final mealPlan = generateMealPlan(monday: monday, allRecipes: allRecipes);
+    if (_user == null) {
+      setState(() { _loading = false; });
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('User not loaded.')));
+      return;
+    }
+    final mealPlan = await generateMealPlan(monday: monday, allRecipes: allRecipes, user: _user!);
     await mealPlanService.addMealPlan(mealPlan, user.uid);
     await _fetchMealPlanForWeek(monday);
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Meal plan generated!')));
@@ -95,15 +124,21 @@ class _MealPlanPageState extends State<MealPlanPage> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
     final recipeService = DatabaseService_Recipe();
+    // Use filtered recipes by user diet
+    final allRecipes = await recipeService.getFilteredRecipes(diet: _user?.dietType);
     final mealPlanService = DatabaseServiceMealPlan();
-    final allRecipes = await recipeService.getAllRecipes();
     if (allRecipes.isEmpty) {
       setState(() { _loading = false; });
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No recipes available.')));
       return;
     }
+    if (_user == null) {
+      setState(() { _loading = false; });
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('User not loaded.')));
+      return;
+    }
     // Use the same generator as for initial generation
-    final newMealPlan = generateMealPlan(monday: monday, allRecipes: allRecipes);
+    final newMealPlan = await generateMealPlan(monday: monday, allRecipes: allRecipes, user: _user!);
     // Find the plan for this week
     final plan = await mealPlanService.getMealPlanForWeek(user.uid, monday);
     if (plan != null) {
