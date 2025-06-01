@@ -83,6 +83,7 @@ MealPlan generateMealPlan({
 }){
   final buckets = bucketizeByMealType(allRecipes);
   final plan = generateRandomMealPlan(buckets);
+  print(user.name);
 
   return plan.toMealPlan(monday);
 }
