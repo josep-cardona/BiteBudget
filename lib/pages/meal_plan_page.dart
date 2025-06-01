@@ -6,6 +6,7 @@ import '../services/meal_plan_service.dart';
 import '../services/meal_plan_generator.dart';
 import 'day_meal_plan_page.dart';
 import '../models/user.dart';
+import 'home.dart'; // Import HomePage for userUpdateNotifier
 
 class MealPlanPage extends StatefulWidget {
   const MealPlanPage({Key? key}) : super(key: key);
@@ -20,6 +21,9 @@ class _MealPlanPageState extends State<MealPlanPage> {
   DateTime _currentMonday = _getMondayOf(DateTime.now());
   Map<int, Map<String, double>> _dayTotals = {};
   AppUser? _user;
+  
+  // Add a listener reference
+  late final VoidCallback _userUpdateListener;
 
   static DateTime _getMondayOf(DateTime date) {
     return DateTime(date.year, date.month, date.day).subtract(Duration(days: date.weekday - 1));
@@ -28,7 +32,17 @@ class _MealPlanPageState extends State<MealPlanPage> {
   @override
   void initState() {
     super.initState();
+    _userUpdateListener = () async {
+      await _fetchUserAndPlan(_currentMonday);
+    };
+    HomePage.userUpdateNotifier.addListener(_userUpdateListener);
     _fetchUserAndPlan(_currentMonday);
+  }
+
+  @override
+  void dispose() {
+    HomePage.userUpdateNotifier.removeListener(_userUpdateListener);
+    super.dispose();
   }
 
   Future<void> _fetchUserAndPlan(DateTime monday) async {
