@@ -4,12 +4,13 @@ import 'package:bitebudget/services/database_service_shopping_list.dart';
 import 'package:intl/intl.dart';
 
 class ShoppingListPage extends StatefulWidget {
+  static final ValueNotifier<int> shoppingListUpdateNotifier = ValueNotifier<int>(0);
   const ShoppingListPage({Key? key}) : super(key: key);
 
   static Future<void> addIngredientsToShoppingList(String userId, List<List<String>> ingredients) async {
-    // Each ingredient: [name, amount, imageUrl]
     final db = DatabaseServiceShoppingList();
     await db.addIngredients(userId, ingredients);
+    shoppingListUpdateNotifier.value++;
   }
 
   @override
@@ -19,11 +20,20 @@ class ShoppingListPage extends StatefulWidget {
 class _ShoppingListPageState extends State<ShoppingListPage> {
   bool _loading = true;
   List<_ShoppingItem> _items = [];
+  late final VoidCallback _shoppingListUpdateListener;
 
   @override
   void initState() {
     super.initState();
+    _shoppingListUpdateListener = () => _loadShoppingList();
+    ShoppingListPage.shoppingListUpdateNotifier.addListener(_shoppingListUpdateListener);
     _loadShoppingList();
+  }
+
+  @override
+  void dispose() {
+    ShoppingListPage.shoppingListUpdateNotifier.removeListener(_shoppingListUpdateListener);
+    super.dispose();
   }
 
   Future<void> _loadShoppingList() async {
