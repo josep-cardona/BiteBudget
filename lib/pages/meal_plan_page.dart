@@ -9,7 +9,8 @@ import '../models/user.dart';
 import 'home.dart'; // Import HomePage for userUpdateNotifier
 
 class MealPlanPage extends StatefulWidget {
-  const MealPlanPage({Key? key}) : super(key: key);
+  final MealPlan? previousWeekPlan;
+  const MealPlanPage({Key? key, this.previousWeekPlan}) : super(key: key);
 
   @override
   State<MealPlanPage> createState() => _MealPlanPageState();
@@ -72,7 +73,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
     if (_mealPlan == null) return;
     final recipeService = DatabaseService_Recipe();
     // Fetch all recipes filtered by user diet
-    final allRecipes = await recipeService.getFilteredRecipes(diet: _user?.dietType);
+    final allRecipes = await recipeService.getFilteredRecipes(diet: _user?.dietType, excludeIngredients: _user?.allergies);
     for (int i = 0; i < _mealPlan!.days.length; i++) {
       final day = _mealPlan!.days[i];
       final names = [day.breakfast, day.lunch, day.snack, day.dinner].whereType<String>().toList();
@@ -113,7 +114,15 @@ class _MealPlanPageState extends State<MealPlanPage> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('User not loaded.')));
       return;
     }
-    final mealPlan = await generateMealPlan(monday: monday, allRecipes: allRecipes, user: _user!);
+    // Fetch previous week's plan
+    final previousMonday = monday.subtract(const Duration(days: 7));
+    final previousWeekPlan = await mealPlanService.getMealPlanForWeek(user.uid, previousMonday);
+    final mealPlan = await generateMealPlan(
+      monday: monday,
+      allRecipes: allRecipes,
+      user: _user!,
+      pastWeek: previousWeekPlan,
+    );
     await mealPlanService.addMealPlan(mealPlan, user.uid);
     await _fetchMealPlanForWeek(monday);
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Meal plan generated!')));
@@ -125,7 +134,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
     if (user == null) return;
     final recipeService = DatabaseService_Recipe();
     // Use filtered recipes by user diet
-    final allRecipes = await recipeService.getFilteredRecipes(diet: _user?.dietType);
+    final allRecipes = await recipeService.getFilteredRecipes(diet: _user?.dietType, excludeIngredients: _user?.allergies);
     final mealPlanService = DatabaseServiceMealPlan();
     if (allRecipes.isEmpty) {
       setState(() { _loading = false; });
@@ -137,8 +146,16 @@ class _MealPlanPageState extends State<MealPlanPage> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('User not loaded.')));
       return;
     }
+    // Fetch previous week's plan
+    final previousMonday = monday.subtract(const Duration(days: 7));
+    final previousWeekPlan = await mealPlanService.getMealPlanForWeek(user.uid, previousMonday);
     // Use the same generator as for initial generation
-    final newMealPlan = await generateMealPlan(monday: monday, allRecipes: allRecipes, user: _user!);
+    final newMealPlan = await generateMealPlan(
+      monday: monday,
+      allRecipes: allRecipes,
+      user: _user!,
+      pastWeek: previousWeekPlan,
+    );
     // Find the plan for this week
     final plan = await mealPlanService.getMealPlanForWeek(user.uid, monday);
     if (plan != null) {
@@ -313,100 +330,99 @@ class _MealPlanPageState extends State<MealPlanPage> {
     double price = _getTotal('price', todayIdx);
     return Center(
       child: SizedBox(
-        width: 380, // Restore previous width
-        child: Card(
-          elevation: 0,
-          margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
-          color: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
+        width: 380,
+        child: GestureDetector(
+          onTap: _mealPlan == null ? null : () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => DayMealPlanPage(
+                  dayPlan: todayPlan,
+                  dayIndex: todayIdx,
+                  weekPlanId: _mealPlan!.id,
+                  weekMonday: _currentMonday,
+                  weekDays: _mealPlan!.days,
+                ),
+              ),
+            );
+            if (mounted) {
+              await _fetchMealPlanForWeek(_currentMonday);
+            }
+          },
+          child: Card(
+            elevation: 0,
+            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0x19053336),
-                  blurRadius: 16,
-                  offset: Offset(0, 2),
-                ),
-              ],
             ),
-            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 22),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.today, size: 22, color: Color(0xFF8390A1)),
-                        const SizedBox(width: 8),
-                        const Text('Today',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 18,
-                              color: Color(0xFF1E232C),
-                            )),
-                      ],
-                    ),
-                    Text(
-                      '${DateTime.now().day}/${DateTime.now().month}',
-                      style: const TextStyle(
-                        color: Color(0xFF2C2C2C),
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                // Remove background from meal box
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x19053336),
+                    blurRadius: 16,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 22),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _mealRow('Breakfast', todayPlan.breakfast),
-                      _mealRow('Lunch', todayPlan.lunch),
-                      _mealRow('Snack', todayPlan.snack),
-                      _mealRow('Dinner', todayPlan.dinner),
+                      Row(
+                        children: [
+                          Icon(Icons.today, size: 22, color: Color(0xFF8390A1)),
+                          const SizedBox(width: 8),
+                          const Text('Today',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 18,
+                                color: Color(0xFF1E232C),
+                              )),
+                        ],
+                      ),
+                      Text(
+                        '${DateTime.now().day}/${DateTime.now().month}',
+                        style: const TextStyle(
+                          color: Color(0xFF2C2C2C),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _infoPill(Icons.local_fire_department, '${calories.toStringAsFixed(0)} kcal', const Color(0xFFFFB300)),
-                    _infoPill(Icons.fitness_center, '${protein.toStringAsFixed(0)}g', const Color(0xFF4CAF50)),
-                    _infoPill(Icons.euro, '${price.toStringAsFixed(2)}€', const Color(0xFF2196F3)),
-                  ],
-                ),
-              ],
+                  const SizedBox(height: 10),
+                  // Remove background from meal box
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _mealRow('Breakfast', todayPlan.breakfast),
+                        _mealRow('Lunch', todayPlan.lunch),
+                        _mealRow('Snack', todayPlan.snack),
+                        _mealRow('Dinner', todayPlan.dinner),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _infoPill(Icons.local_fire_department, '${calories.toStringAsFixed(0)} kcal', const Color(0xFFFFB300)),
+                      _infoPill(Icons.fitness_center, '${protein.toStringAsFixed(0)}g', const Color(0xFF4CAF50)),
+                      _infoPill(Icons.euro, '${price.toStringAsFixed(2)}€', const Color(0xFF2196F3)),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _prettyDate(DateTime date) {
-    // Example: 1/6
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE9EEF6),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        '${date.day}/${date.month}',
-        style: const TextStyle(
-          color: Color(0xFF2C2C2C),
-          fontWeight: FontWeight.w600,
-          fontSize: 13,
         ),
       ),
     );
@@ -526,79 +542,96 @@ Widget _buildRegenerateDeleteRow() {
     double price = _getTotal('price', index);
     return Center(
       child: SizedBox(
-        width: 380, // Restore previous width
-        child: Card(
-          elevation: 0,
-          margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
-          color: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
+        width: 380,
+        child: GestureDetector(
+          onTap: _mealPlan == null ? null : () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => DayMealPlanPage(
+                  dayPlan: day,
+                  dayIndex: index,
+                  weekPlanId: _mealPlan!.id,
+                  weekMonday: _currentMonday,
+                  weekDays: _mealPlan!.days,
+                ),
+              ),
+            );
+            if (mounted) {
+              await _fetchMealPlanForWeek(_currentMonday);
+            }
+          },
+          child: Card(
+            elevation: 0,
+            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0x19053336),
-                  blurRadius: 16,
-                  offset: Offset(0, 2),
-                ),
-              ],
             ),
-            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 22),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.calendar_today, size: 20, color: Color(0xFF8390A1)),
-                        const SizedBox(width: 8),
-                        Text(dayName,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 18,
-                              color: Color(0xFF1E232C),
-                            )),
-                      ],
-                    ),
-                    Text(
-                      '${date.day}/${date.month}',
-                      style: const TextStyle(
-                        color: Color(0xFF2C2C2C),
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                // Remove background from meal box
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x19053336),
+                    blurRadius: 16,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 22),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _mealRow('Breakfast', day.breakfast),
-                      _mealRow('Lunch', day.lunch),
-                      _mealRow('Snack', day.snack),
-                      _mealRow('Dinner', day.dinner),
+                      Row(
+                        children: [
+                          Icon(Icons.calendar_today, size: 20, color: Color(0xFF8390A1)),
+                          const SizedBox(width: 8),
+                          Text(dayName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 18,
+                                color: Color(0xFF1E232C),
+                              )),
+                        ],
+                      ),
+                      Text(
+                        '${date.day}/${date.month}',
+                        style: const TextStyle(
+                          color: Color(0xFF2C2C2C),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _infoPill(Icons.local_fire_department, '${calories.toStringAsFixed(0)} kcal', const Color(0xFFFFB300)),
-                    _infoPill(Icons.fitness_center, '${protein.toStringAsFixed(0)}g', const Color(0xFF4CAF50)),
-                    _infoPill(Icons.euro, '${price.toStringAsFixed(2)}€', const Color(0xFF2196F3)),
-                  ],
-                ),
-              ],
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _mealRow('Breakfast', day.breakfast),
+                        _mealRow('Lunch', day.lunch),
+                        _mealRow('Snack', day.snack),
+                        _mealRow('Dinner', day.dinner),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _infoPill(Icons.local_fire_department, '${calories.toStringAsFixed(0)} kcal', const Color(0xFFFFB300)),
+                      _infoPill(Icons.fitness_center, '${protein.toStringAsFixed(0)}g', const Color(0xFF4CAF50)),
+                      _infoPill(Icons.euro, '${price.toStringAsFixed(2)}€', const Color(0xFF2196F3)),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -761,35 +794,42 @@ Widget _buildRegenerateDeleteRow() {
             ),
           ),
           Positioned(
-  top: 0,
-  left: 0,
-  right: 0,
-  child: Container(
-    height: 160,
-    decoration: const BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.bottomCenter,
-        end: Alignment.topCenter,
-        colors: [
-          Color.fromARGB(0, 255, 255, 255),
-          Colors.white,
-        ],
-      ),
-    ),
-    child: SafeArea(
-      bottom: false,
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: 80,  // limit the height _buildWeekSelector can take
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Stack(
+              children: [
+                IgnorePointer(
+                  ignoring: true,
+                  child: Container(
+                    height: 160,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          Color.fromARGB(0, 255, 255, 255),
+                          Colors.white,
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                SafeArea(
+                  bottom: false,
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: 80,  // limit the height _buildWeekSelector can take
+                      ),
+                      child: _buildWeekSelector(weekStart, weekEnd, currentMonday, isCurrentWeek),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          child: _buildWeekSelector(weekStart, weekEnd, currentMonday, isCurrentWeek),
-        ),
-      ),
-    ),
-  ),
-),
 
 
         ],

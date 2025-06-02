@@ -34,6 +34,22 @@ class FlatMealPlan {
       days: days,
     );
   }
+
+  // Create a FlatMealPlan from a MealPlan and a list of all recipes
+  static FlatMealPlan fromMealPlan(MealPlan mealPlan, List<Recipe> allRecipes) {
+    final recipeMap = { for (var r in allRecipes) r.name : r };
+    final List<Recipe> genes = [];
+    for (final day in mealPlan.days) {
+      for (final name in [day.breakfast, day.lunch, day.snack, day.dinner]) {
+        if (name != null && recipeMap.containsKey(name)) {
+          genes.add(recipeMap[name]!);
+        } else {
+          throw Exception('Recipe "$name" not found in allRecipes');
+        }
+      }
+    }
+    return FlatMealPlan(genes);
+  }
 }
 
 
@@ -342,15 +358,29 @@ Future<MealPlan> evolveMealPlan({
 Future<MealPlan> generateMealPlan({
   required DateTime monday,
   required List<Recipe> allRecipes,
-  required AppUser user
+  required AppUser user,
+  MealPlan? pastWeek
+  
 }) async {
   //Random smart planning
   //final buckets = bucketizeByMealType(allRecipes);
   //final plan = generateRandomMealPlan(buckets);
 
   //GA:
-  
-  return await evolveMealPlan(allRecipes: allRecipes, monday: monday, calorieGoal: user.caloriesGoal, proteinGoal: user.proteinGoal, weeklyBudget: user.weeklyBudget);
+
+  FlatMealPlan? previousWeek;
+  if (pastWeek != null) {
+    previousWeek = FlatMealPlan.fromMealPlan(pastWeek, allRecipes);
+  }
+  return await evolveMealPlan(
+    allRecipes: allRecipes,
+    monday: monday,
+    calorieGoal: user.caloriesGoal,
+    proteinGoal: user.proteinGoal,
+    weeklyBudget: user.weeklyBudget,
+    // Optionally: pass previousWeek if needed
+    previousWeek: previousWeek
+  );
 }
 
 
