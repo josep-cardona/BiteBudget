@@ -4,6 +4,7 @@ import 'package:bitebudget/services/database_service.dart';
 import 'package:bitebudget/services/meal_plan_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:bitebudget/models/recipe.dart';
+import 'package:bitebudget/pages/recipe_page.dart';
 
 class DayMealPlanPage extends StatefulWidget {
   final DayPlan dayPlan;
@@ -123,21 +124,30 @@ class _DayMealPlanPageState extends State<DayMealPlanPage> {
 
   Widget _mealCard(String label, String? recipeName, String mealType) {
     final recipe = recipeName != null ? _recipeMap[recipeName] : null;
-    return GestureDetector(
-      onTap: () => _editRecipe(mealType),
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.15),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: recipe != null
+            ? () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => RecipePage(recipe: recipe),
+                  ),
+                );
+              }
+            : null,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -173,7 +183,11 @@ class _DayMealPlanPageState extends State<DayMealPlanPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                      Icon(Icons.edit, color: Colors.grey[700]),
+                      IconButton(
+                        icon: Icon(Icons.edit, color: Colors.grey[700]),
+                        tooltip: 'Edit $label',
+                        onPressed: () => _editRecipe(mealType),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
