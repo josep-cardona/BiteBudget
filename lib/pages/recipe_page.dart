@@ -2,9 +2,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:bitebudget/models/recipe.dart';
-import 'package:bitebudget/models/recipe_uploader.dart';
-import 'package:bitebudget/services/database_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:bitebudget/pages/shopping_list_page.dart';
 
 class RecipePage extends StatefulWidget {
   final Recipe recipe;
@@ -350,6 +350,36 @@ class _RecipePageState extends State<RecipePage> {
                                 ),
                         ),
                         // Add more content here as needed
+                        const SizedBox(height: 32),
+                        Center(
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              icon: Icon(Icons.add_shopping_cart, color: Colors.white),
+                              label: Text('Add ingredients to shopping list', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.black,
+                                padding: const EdgeInsets.symmetric(vertical: 18),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              ),
+                              onPressed: () async {
+                                final user = await FirebaseAuth.instance.currentUser;
+                                if (user != null) {
+                                  await ShoppingListPage.addIngredientsToShoppingList(
+                                    user.uid,
+                                    widget.recipe.ingredients,
+                                  );
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Ingredients added to your shopping list!')),
+                                    );
+                                  }
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
                       ],
                     ),
                   ),

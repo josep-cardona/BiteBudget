@@ -13,6 +13,7 @@ import 'package:path/path.dart' as path;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bitebudget/models/recipe_uploader.dart';
 import 'package:bitebudget/services/database_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -86,6 +87,80 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  void _deleteAccount() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final confirm = await showDialog<bool>(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.3),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Icon(Icons.delete_forever, color: Colors.red, size: 40),
+              const SizedBox(height: 16),
+              const Text('Delete Account', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black)),
+              const SizedBox(height: 12),
+              const Text('Are you sure you want to delete your account? This action cannot be undone.',
+                style: TextStyle(fontSize: 16, color: Colors.black87), textAlign: TextAlign.center),
+              const SizedBox(height: 28),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.black,
+                        side: const BorderSide(color: Color(0xFFE6E6E6)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor: const Color(0xFFF7F7F7),
+                      ),
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (confirm != true) return;
+    try {
+      // Delete user document from Firestore
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).delete();
+      // Delete Firebase Auth user
+      await user.delete();
+      if (mounted) {
+        GoRouter.of(context).go('/welcome');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account deleted.')),);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting account: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -136,6 +211,7 @@ class _ProfilePageState extends State<ProfilePage> {
               _profileMenuItem(Icons.flash_on, 'Future Features'),
               _profileMenuItem(Icons.menu_book_outlined, 'About us'),
               _profileMenuItem(Icons.logout, 'Log out', onTap: _logout),
+              _profileMenuItem(Icons.delete_forever, 'Delete Account', onTap: _deleteAccount),
               if (_user?.email == 'admin@bitebudget.com')
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16.0),
