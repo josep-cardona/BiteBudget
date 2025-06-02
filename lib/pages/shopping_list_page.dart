@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:bitebudget/services/database_service.dart';
-import 'package:bitebudget/services/meal_plan_service.dart';
+import 'package:bitebudget/services/database_service_shopping_list.dart';
 import 'package:intl/intl.dart';
 
 class ShoppingListPage extends StatefulWidget {
   const ShoppingListPage({Key? key}) : super(key: key);
+
+  static Future<void> addIngredientsToShoppingList(String userId, List<List<String>> ingredients) async {
+    // Each ingredient: [name, amount, imageUrl]
+    final db = DatabaseServiceShoppingList();
+    await db.addIngredients(userId, ingredients);
+  }
 
   @override
   State<ShoppingListPage> createState() => _ShoppingListPageState();
@@ -18,40 +23,22 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
   @override
   void initState() {
     super.initState();
-    _fetchShoppingList();
+    _loadShoppingList();
   }
 
-  Future<void> _fetchShoppingList() async {
+  Future<void> _loadShoppingList() async {
     setState(() => _loading = true);
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-    final mealPlanService = DatabaseServiceMealPlan();
-    final recipeService = DatabaseService_Recipe();
-    final now = DateTime.now();
-    final monday = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
-    final plan = await mealPlanService.getMealPlanForWeek(user.uid, monday);
-    if (plan == null) {
-      setState(() { _items = []; _loading = false; });
-      return;
-    }
-    final recipeNames = <String>{};
-    for (final day in plan.days) {
-      if (day.breakfast != null) recipeNames.add(day.breakfast!);
-      if (day.lunch != null) recipeNames.add(day.lunch!);
-      if (day.snack != null) recipeNames.add(day.snack!);
-      if (day.dinner != null) recipeNames.add(day.dinner!);
-    }
-    final recipeMap = await recipeService.getRecipesByNames(recipeNames.toList());
-    final ingredients = <String>{};
-    for (final recipe in recipeMap.values) {
-      for (final pair in recipe.ingredients) {
-        if (pair.isNotEmpty && pair[0].trim().isNotEmpty) {
-          ingredients.add(pair[0].trim());
-        }
-      }
-    }
+    final db = DatabaseServiceShoppingList();
+    final items = await db.getShoppingList(user.uid);
     setState(() {
-      _items = ingredients.toList().map((e) => _ShoppingItem(name: e)).toList();
+      _items = items.map((e) => _ShoppingItem(
+        name: e['name'] ?? '',
+        quantity: e['quantity'] ?? '',
+        unit: e['unit'] ?? '',
+        bought: e['bought'] ?? false,
+      )).toList();
       _loading = false;
     });
   }
@@ -60,12 +47,22 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
     setState(() {
       item.bought = !item.bought;
     });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final db = DatabaseServiceShoppingList();
+      db.updateItemBought(user.uid, item.name, item.bought);
+    }
   }
 
   void _removeItem(_ShoppingItem item) {
     setState(() {
       _items.remove(item);
     });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final db = DatabaseServiceShoppingList();
+      db.removeItem(user.uid, item.name);
+    }
   }
 
   void _showAddItemDialog() {
@@ -74,10 +71,12 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
     String unit = '';
     showDialog(
       context: context,
+      barrierColor: Colors.black.withOpacity(0.3),
       builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,16 +84,17 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Add New Item', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                  const Text('Add New Item', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.black)),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded),
+                    icon: const Icon(Icons.close_rounded, color: Colors.black),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
               TextField(
-                decoration: const InputDecoration(labelText: 'Item name'),
+                decoration: const InputDecoration(labelText: 'Item name', labelStyle: TextStyle(color: Colors.black54)),
+                style: const TextStyle(color: Colors.black),
                 onChanged: (v) => name = v,
               ),
               const SizedBox(height: 12),
@@ -102,14 +102,16 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
                 children: [
                   Expanded(
                     child: TextField(
-                      decoration: const InputDecoration(labelText: 'Quantity'),
+                      decoration: const InputDecoration(labelText: 'Quantity', labelStyle: TextStyle(color: Colors.black54)),
+                      style: const TextStyle(color: Colors.black),
                       onChanged: (v) => quantity = v,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: TextField(
-                      decoration: const InputDecoration(labelText: 'Unit'),
+                      decoration: const InputDecoration(labelText: 'Unit', labelStyle: TextStyle(color: Colors.black54)),
+                      style: const TextStyle(color: Colors.black),
                       onChanged: (v) => unit = v,
                     ),
                   ),
@@ -124,11 +126,16 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  onPressed: () {
+                  onPressed: () async {
                     if (name.trim().isNotEmpty) {
                       setState(() {
                         _items.add(_ShoppingItem(name: name.trim(), quantity: quantity.trim(), unit: unit.trim()));
                       });
+                      final user = FirebaseAuth.instance.currentUser;
+                      if (user != null) {
+                        final db = DatabaseServiceShoppingList();
+                        await db.addItem(user.uid, name.trim(), quantity.trim(), unit.trim());
+                      }
                       Navigator.of(context).pop();
                     }
                   },
@@ -277,6 +284,6 @@ class _ShoppingItem {
   final String name;
   final String quantity;
   final String unit;
-  bool bought = false;
-  _ShoppingItem({required this.name, this.quantity = '', this.unit = ''});
+  bool bought;
+  _ShoppingItem({required this.name, this.quantity = '', this.unit = '', this.bought = false});
 }

@@ -25,19 +25,30 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _databaseService = DatabaseService_Recipe();
-    _featuredRecipes = _databaseService.getRandomRecipes(4);
-    _fetchAndSetUser();
-    HomePage.userUpdateNotifier.addListener(_fetchAndSetUser);
+    _fetchAndSetUserAndFeatured();
+    HomePage.userUpdateNotifier.addListener(_fetchAndSetUserAndFeatured);
   }
 
-  Future<void> _fetchAndSetUser() async {
+  Future<void> _fetchAndSetUserAndFeatured() async {
     final user = await AppUser.fetchCurrentUser();
+    List<Recipe> allFeatured = [];
+    if (user == null || user.dietType == null || user.dietType == 'Omnivore') {
+      allFeatured = await _databaseService.getFilteredRecipes();
+    } else if (user.dietType == 'Vegetarian') {
+      allFeatured = await _databaseService.getFilteredRecipes(diet: 'Vegetarian');
+    } else if (user.dietType == 'Vegan') {
+      allFeatured = await _databaseService.getFilteredRecipes(diet: 'Vegan');
+    } else {
+      allFeatured = await _databaseService.getFilteredRecipes();
+    }
+    allFeatured.shuffle();
     setState(() {
       _user = user;
       _popularRecipes = _databaseService.getFilteredRecipes(
         types: current_category,
         diet: _user?.dietType,
       );
+      _featuredRecipes = Future.value(allFeatured.take(4).toList());
     });
   }
 
@@ -53,7 +64,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    HomePage.userUpdateNotifier.removeListener(_fetchAndSetUser);
+    HomePage.userUpdateNotifier.removeListener(_fetchAndSetUserAndFeatured);
     super.dispose();
   }
 
