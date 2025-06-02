@@ -8,7 +8,7 @@ class Recipe {
   double price;
   double time;
   String diet;
-  List<List<String>> ingredients; // Now a 2D list: [[ingredient, amount], ...]
+  List<List<String>> ingredients; // Now a 3D list: [[ingredient, amount, imageUrl], ...]
   List<String> type;
   String? image_url;
   List<String> steps;
@@ -34,21 +34,25 @@ class Recipe {
     SnapshotOptions? options, 
   ) {
     final data = snapshot.data() ?? {};
-    // Parse ingredients: List<String> (ingredient;amount) -> List<List<String>>
+    // Parse ingredients: List<List<String>> or List<String> (ingredient;amount;imageUrl)
     List<List<String>> parsedIngredients = [];
     if (data['ingredients'] is List) {
       parsedIngredients = (data['ingredients'] as List<dynamic>).map<List<String>>((item) {
-        if (item is String && item.contains(';')) {
+        if (item is List && item.length >= 3) {
+          return [item[0].toString(), item[1].toString(), item[2].toString()];
+        } else if (item is String && item.contains(';')) {
           final parts = item.split(';');
-          if (parts.length >= 2) {
-            return [parts[0], parts.sublist(1).join(';')]; // In case amount contains ';'
+          if (parts.length >= 3) {
+            return [parts[0], parts[1], parts[2]];
+          } else if (parts.length == 2) {
+            return [parts[0], parts[1], ''];
           } else {
-            return [parts[0], ''];
+            return [parts[0], '', ''];
           }
         } else if (item is String) {
-          return [item, ''];
+          return [item, '', ''];
         } else {
-          return [item.toString(), ''];
+          return [item.toString(), '', ''];
         }
       }).toList();
     }
@@ -71,16 +75,8 @@ class Recipe {
   // Method: To Dart Object to Firestore Map
   // This method is used when you write data to Firestore.
   Map<String, dynamic> toFirestore() {
-    // Convert ingredients: List<List<String>> -> List<String> (ingredient;amount)
-    final List<String> ingredientsForFirestore = ingredients.map((pair) {
-      if (pair.length >= 2) {
-        return "${pair[0]};${pair[1]}";
-      } else if (pair.isNotEmpty) {
-        return pair[0];
-      } else {
-        return "";
-      }
-    }).toList();
+    // Convert ingredients: List<List<String>> -> List<String> (semicolon-separated)
+    final List<String> ingredientsForFirestore = ingredients.map((triple) => triple.join(';')).toList();
     return {
       'name': name,
       'calories': calories,
@@ -96,21 +92,25 @@ class Recipe {
   }
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
-    // Accepts ingredients as List<String> (ingredient;amount) or List<dynamic> (ingredient only)
+    // Accepts ingredients as List<List<String>> or List<String> (ingredient;amount;imageUrl)
     List<List<String>> parsedIngredients = [];
     if (json['ingredients'] is List) {
       parsedIngredients = (json['ingredients'] as List<dynamic>).map<List<String>>((item) {
-        if (item is String && item.contains(';')) {
+        if (item is List && item.length >= 3) {
+          return [item[0].toString(), item[1].toString(), item[2].toString()];
+        } else if (item is String && item.contains(';')) {
           final parts = item.split(';');
-          if (parts.length >= 2) {
-            return [parts[0], parts.sublist(1).join(';')];
+          if (parts.length >= 3) {
+            return [parts[0], parts[1], parts[2]];
+          } else if (parts.length == 2) {
+            return [parts[0], parts[1], ''];
           } else {
-            return [parts[0], ''];
+            return [parts[0], '', ''];
           }
         } else if (item is String) {
-          return [item, ''];
+          return [item, '', ''];
         } else {
-          return [item.toString(), ''];
+          return [item.toString(), '', ''];
         }
       }).toList();
     }

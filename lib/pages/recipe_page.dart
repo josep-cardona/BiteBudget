@@ -2,9 +2,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:bitebudget/models/recipe.dart';
-import 'package:bitebudget/models/recipe_uploader.dart';
-import 'package:bitebudget/services/database_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:bitebudget/pages/shopping_list_page.dart';
 
 class RecipePage extends StatefulWidget {
   final Recipe recipe;
@@ -110,6 +110,7 @@ class _RecipePageState extends State<RecipePage> {
                           ),
                         ),
                         const SizedBox(height: 10),
+                        /*
                         Text(
                           'This Pudding is the perfect fresh breakfast for a hot summer morning',
                           style: const TextStyle(
@@ -118,6 +119,7 @@ class _RecipePageState extends State<RecipePage> {
                             fontVariations: [FontVariation('wght', 400)],
                           ),
                         ),
+                        */
                         const SizedBox(height: 10),
                         Center(
                           child: Wrap(
@@ -127,8 +129,8 @@ class _RecipePageState extends State<RecipePage> {
                             children: [
                               _buildItem('${widget.recipe.type.isNotEmpty ? widget.recipe.type[0] : ''}', Icons.watch_later_outlined),
                               _buildItem('${widget.recipe.diet}', Icons.info_outline),
-                              _buildItem('${widget.recipe.calories} Kcal', Icons.question_mark_outlined),
-                              _buildItem('${widget.recipe.protein}g protein', Icons.question_mark_outlined),
+                              _buildItem('${widget.recipe.calories} Kcal', Icons.local_fire_department),
+                              _buildItem('${widget.recipe.protein}g protein', Icons.fitness_center),
                             ],
                           ),
                         ),
@@ -236,45 +238,79 @@ class _RecipePageState extends State<RecipePage> {
                                       physics: NeverScrollableScrollPhysics(),
                                       itemCount: widget.recipe.ingredients.length,
                                       separatorBuilder: (context, i) => SizedBox(height: 12),
-                                      itemBuilder: (context, i) => Container(
-                                        height: 80,
-                                        decoration: ShapeDecoration(
-                                          color: Colors.white,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(16),
+                                      itemBuilder: (context, i) {
+                                        final ingredient = widget.recipe.ingredients[i];
+                                        final name = ingredient.isNotEmpty ? ingredient[0] : '';
+                                        final amount = ingredient.length > 1 ? ingredient[1] : '';
+                                        final imageUrl = ingredient.length > 2 ? ingredient[2] : null;
+                                        return Container(
+                                          height: 80,
+                                          decoration: ShapeDecoration(
+                                            color: Colors.white,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(16),
+                                            ),
+                                            shadows: [
+                                              BoxShadow(
+                                                color: Color(0x19053336),
+                                                blurRadius: 16,
+                                                offset: Offset(0, 2),
+                                                spreadRadius: 0,
+                                              )
+                                            ],
                                           ),
-                                          shadows: [
-                                            BoxShadow(
-                                              color: Color(0x19053336),
-                                              blurRadius: 16,
-                                              offset: Offset(0, 2),
-                                              spreadRadius: 0,
-                                            )
-                                          ],
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Container(
-                                              width: 48,
-                                              height: 48,
-                                              margin: EdgeInsets.only(top:6,  bottom: 6, right: 6, left: 16),
-                                              decoration: BoxDecoration(
-                                                color: Color(0xFF6FB9BE),
-                                                borderRadius: BorderRadius.circular(8),
+                                          child: Row(
+                                            children: [
+                                              Container(
+                                                width: 56,
+                                                height: 56,
+                                                margin: const EdgeInsets.symmetric(horizontal: 12),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFFF2F2F2),
+                                                  borderRadius: BorderRadius.circular(12),
+                                                ),
+                                                child: imageUrl != null && imageUrl.isNotEmpty
+                                                    ? ClipRRect(
+                                                        borderRadius: BorderRadius.circular(12),
+                                                        child: Image.network(
+                                                          imageUrl,
+                                                          fit: BoxFit.cover,
+                                                          width: 56,
+                                                          height: 56,
+                                                          loadingBuilder: (context, child, loadingProgress) {
+                                                            if (loadingProgress == null) return child;
+                                                            return Center(
+                                                              child: SizedBox(
+                                                                width: 24,
+                                                                height: 24,
+                                                                child: CircularProgressIndicator(strokeWidth: 2),
+                                                              ),
+                                                            );
+                                                          },
+                                                          errorBuilder: (context, error, stackTrace) => Icon(Icons.image_not_supported, color: Colors.grey, size: 32),
+                                                        ),
+                                                      )
+                                                    : Icon(Icons.image, color: Colors.grey, size: 32),
                                               ),
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Expanded(
-                                              child: Text(widget.recipe.ingredients[i][0], 
-                                              style: TextStyle(fontSize: 18, fontVariations: const [FontVariation('wght', 700)],),),
-                                            ),
-                                            Padding(
-                                              padding: const EdgeInsets.only(right: 16.0),
-                                              child: Text(widget.recipe.ingredients[i][1], style: TextStyle(color: Colors.grey[700])),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: Column(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(name, style: TextStyle(fontSize: 18, fontVariations: const [FontVariation('wght', 700)],)),
+                                                    if (amount.isNotEmpty)
+                                                      Padding(
+                                                        padding: const EdgeInsets.only(top: 2.0),
+                                                        child: Text(amount, style: TextStyle(fontSize: 15, color: Colors.grey[700])),
+                                                      ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ],
                                 )
@@ -314,6 +350,36 @@ class _RecipePageState extends State<RecipePage> {
                                 ),
                         ),
                         // Add more content here as needed
+                        const SizedBox(height: 32),
+                        Center(
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              icon: Icon(Icons.add_shopping_cart, color: Colors.white),
+                              label: Text('Add ingredients to shopping list', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.black,
+                                padding: const EdgeInsets.symmetric(vertical: 18),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              ),
+                              onPressed: () async {
+                                final user = await FirebaseAuth.instance.currentUser;
+                                if (user != null) {
+                                  await ShoppingListPage.addIngredientsToShoppingList(
+                                    user.uid,
+                                    widget.recipe.ingredients,
+                                  );
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Ingredients added to your shopping list!')),
+                                    );
+                                  }
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
                       ],
                     ),
                   ),
