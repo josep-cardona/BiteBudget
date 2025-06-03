@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:bitebudget/models/recipe.dart';
+import 'package:BiteBudget/models/recipe.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 const String RECIPE_COLLECTION_REF = "recipes";

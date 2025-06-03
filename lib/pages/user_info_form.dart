@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:bitebudget/pages/meal_preferences_form.dart';
-import 'package:bitebudget/services/user_service.dart';
+import 'package:BiteBudget/pages/meal_preferences_form.dart';
+import 'package:BiteBudget/services/user_service.dart';
 
 class UserInfoForm extends StatefulWidget {
   const UserInfoForm({super.key});

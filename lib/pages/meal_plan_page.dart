@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:bitebudget/services/database_service.dart';
+import 'package:BiteBudget/services/database_service.dart';
 import '../models/meal_plan.dart';
 import '../services/meal_plan_service.dart';
 import '../services/meal_plan_generator.dart';

@@ -1,10 +1,10 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:bitebudget/models/recipe.dart';
+import 'package:BiteBudget/models/recipe.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:bitebudget/pages/shopping_list_page.dart';
+import 'package:BiteBudget/pages/shopping_list_page.dart';
 import '../bitebudget_button_style.dart';
 
 class RecipePage extends StatefulWidget {
@@ -123,15 +123,26 @@ class _RecipePageState extends State<RecipePage> {
                         */
                         const SizedBox(height: 10),
                         Center(
-                          child: Wrap(
-                            alignment: WrapAlignment.center,
-                            spacing: 12.0,
-                            runSpacing: 12.0,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              _buildItem('${widget.recipe.type.isNotEmpty ? widget.recipe.type[0] : ''}', Icons.watch_later_outlined),
-                              _buildItem('${widget.recipe.diet}', Icons.info_outline),
-                              _buildItem('${widget.recipe.calories} Kcal', Icons.local_fire_department),
-                              _buildItem('${widget.recipe.protein}g protein', Icons.fitness_center),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _buildItem('${widget.recipe.type.isNotEmpty ? widget.recipe.type[0] : ''}', Icons.watch_later_outlined),
+                                  const SizedBox(width: 14.0),
+                                  _buildItem('${widget.recipe.diet}', Icons.info_outline),
+                                ],
+                              ),
+                              const SizedBox(height: 12.0),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _buildItem('${widget.recipe.calories} Kcal', Icons.local_fire_department),
+                                  const SizedBox(width: 14.0),
+                                  _buildItem('${widget.recipe.protein}g protein', Icons.fitness_center),
+                                ],
+                              ),
                             ],
                           ),
                         ),
@@ -428,7 +439,7 @@ class _RecipePageState extends State<RecipePage> {
 
 Widget _buildItem(String label, IconData icon) {
   return SizedBox(
-    width: 170,
+    width: 155,
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [

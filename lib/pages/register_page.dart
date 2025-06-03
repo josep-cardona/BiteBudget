@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:bitebudget/services/auth_service.dart';
-import 'package:bitebudget/services/user_service.dart';
-import 'package:bitebudget/models/user.dart';
+import 'package:BiteBudget/services/auth_service.dart';
+import 'package:BiteBudget/services/user_service.dart';
+import 'package:BiteBudget/models/user.dart';
 import 'user_info_form.dart';
 import '../bitebudget_button_style.dart';
 

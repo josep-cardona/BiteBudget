@@ -1,9 +1,9 @@
-import 'package:bitebudget/models/recipe.dart';
-import 'package:bitebudget/services/database_service.dart';
-import 'package:bitebudget/models/user.dart';
+import 'package:BiteBudget/models/recipe.dart';
+import 'package:BiteBudget/services/database_service.dart';
+import 'package:BiteBudget/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:bitebudget/pages/recipe_page.dart';
+import 'package:BiteBudget/pages/recipe_page.dart';
 
 // Convert HomePage to a StatefulWidget
 class HomePage extends StatefulWidget {

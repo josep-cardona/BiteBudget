@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:bitebudget/models/meal_plan.dart';
-import 'package:bitebudget/services/database_service.dart';
-import 'package:bitebudget/services/meal_plan_service.dart';
+import 'package:BiteBudget/models/meal_plan.dart';
+import 'package:BiteBudget/services/database_service.dart';
+import 'package:BiteBudget/services/meal_plan_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:bitebudget/models/recipe.dart';
-import 'package:bitebudget/pages/recipe_page.dart';
+import 'package:BiteBudget/models/recipe.dart';
+import 'package:BiteBudget/pages/recipe_page.dart';
 
 class DayMealPlanPage extends StatefulWidget {
   final DayPlan dayPlan;
