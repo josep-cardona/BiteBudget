@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'register_page.dart';
 import '../bitebudget_button_style.dart';
+import 'package:BiteBudget/services/user_service.dart';
+import 'user_info_form.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -52,7 +54,15 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final user = await _authService.signInWithGoogle();
       if (user != null && mounted) {
-        GoRouter.of(context).go(Routes.homePage);
+        final appUser = await UserService().getUser(user.uid);
+        if (appUser == null || appUser.mealPreferencesCompleted != true) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const UserInfoForm()),
+          );
+        } else {
+          GoRouter.of(context).go(Routes.homePage);
+        }
       }
     } catch (e) {
       _showError('Google sign-in failed: $e');
@@ -208,12 +218,15 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       child: _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : Text(
-                              'Log In',
-                              style: GoogleFonts.inter(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
-                                color: Colors.white,
+                          : FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                'Log In',
+                                style: GoogleFonts.inter(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                     ),

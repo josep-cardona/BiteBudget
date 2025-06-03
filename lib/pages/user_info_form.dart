@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:BiteBudget/pages/meal_preferences_form.dart';
 import 'package:BiteBudget/services/user_service.dart';
+import 'package:go_router/go_router.dart';
 
 class UserInfoForm extends StatefulWidget {
   const UserInfoForm({super.key});
@@ -59,12 +59,8 @@ class _UserInfoFormState extends State<UserInfoForm> {
       await UserService().updateUser(user.uid, infoData);
 
       if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MealPreferencesForm(userInfo: infoData),
-          ),
-        );
+        // Use GoRouter for navigation to avoid page-based route errors
+        GoRouter.of(context).go('/meal_preferences');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
