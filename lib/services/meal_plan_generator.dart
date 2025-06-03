@@ -114,7 +114,7 @@ double evaluateFitness(
   double? dailyTimeLimit,
   FlatMealPlan? previousWeekPlan,
   double weightCalories = 1.0,
-  double weightProtein = 4.0, // Protein error penalized more
+  double weightProtein = 4.0,
 }) {
   final List<Recipe> genes = plan.genes;
   final int totalDays = 7;
@@ -130,6 +130,7 @@ double evaluateFitness(
       : {};
 
   int previousWeekRepeats = 0;
+  double lunchDinnerPenalty = 0; // NEW
 
   for (int day = 0; day < totalDays; day++) {
     double dayCalories = 0;
@@ -160,7 +161,14 @@ double evaluateFitness(
     }
 
     if (dailyTimeLimit != null && dayTime > dailyTimeLimit) {
-      totalTime += (dayTime - dailyTimeLimit); // only penalize excess
+      totalTime += (dayTime - dailyTimeLimit);
+    }
+
+    // NEW: Penalize if dinner is more caloric than lunch
+    Recipe lunch = genes[day * 4 + 1];
+    Recipe dinner = genes[day * 4 + 2];
+    if (dinner.calories > lunch.calories) {
+      lunchDinnerPenalty += (dinner.calories - lunch.calories) / 1000.0;
     }
   }
 
@@ -183,7 +191,6 @@ double evaluateFitness(
   // Weighted errors
   double calorieError = dailyCaloriesGoal != null ? totalCalorieError / totalDays : 0;
   double proteinError = dailyProteinGoal != null ? totalProteinError / totalDays : 0;
-
   double weightedError = (weightCalories * calorieError) + (weightProtein * proteinError);
 
   // Repetition penalties
@@ -191,10 +198,11 @@ double evaluateFitness(
   double previousWeekPenalty = previousWeekRepeats * 0.05;
 
   // Final fitness
-  double fitness = 1 / (1 + weightedError + penalty + sameWeekRepetitionPenalty + previousWeekPenalty);
+  double fitness = 1 / (1 + weightedError + penalty + sameWeekRepetitionPenalty + previousWeekPenalty + lunchDinnerPenalty);
 
   return fitness;
 }
+
 
 
 FlatMealPlan tournamentSelection(List<FlatMealPlan> population, Map<FlatMealPlan, double> fitnessScores, {int tournamentSize = 3}) {
@@ -281,7 +289,7 @@ Future<MealPlan> evolveMealPlan({
   double? weeklyBudget,
   double? weeklyTime,
   FlatMealPlan? previousWeek,
-  int earlyStoppingRounds = 15,
+  int earlyStoppingRounds = 25,
 }) async {
   final random = Random();
   final mealBuckets = bucketizeByMealType(allRecipes);
