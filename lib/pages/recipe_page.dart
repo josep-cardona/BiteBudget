@@ -295,7 +295,7 @@ class _RecipePageState extends State<RecipePage> {
                                                               child: SizedBox(
                                                                 width: 24,
                                                                 height: 24,
-                                                                child: CircularProgressIndicator(strokeWidth: 2),
+                                                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
                                                               ),
                                                             );
                                                           },

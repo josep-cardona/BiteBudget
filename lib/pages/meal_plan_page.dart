@@ -700,7 +700,7 @@ Widget _buildRegenerateDeleteRow() {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return Container(color:Colors.white,child: Center(child: CircularProgressIndicator()));
+      return Container(color:Colors.white,child: Center(child: CircularProgressIndicator(color: Colors.black)));
     }
     final weekStart = _currentMonday;
     final weekEnd = _currentMonday.add(const Duration(days: 6));
@@ -715,101 +715,103 @@ Widget _buildRegenerateDeleteRow() {
       body: Stack(
         children: [
           Positioned.fill(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 80),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 30),
-                    if (!isCurrentWeek && _mealPlan != null) _buildGoToCurrentWeekButton(currentMonday),
-                    if (isCurrentWeek && todayPlan != null) ...[
-                      _buildTodayCard(todayPlan, todayIdx),
-                      _buildWeekPlanDivider(),
-                    ],
-                    if (_mealPlan != null)
-                      _buildRegenerateDeleteRow(),
-                    if (_mealPlan == null)
-                      Center(child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 190,
-                            height: 190,
-                            child: Stack(
-                              children: [
-                                Positioned(
-                                  left: 0.70,
-                                  top: 7,
-                                  child: Container(
-                                    width: 180.59,
-                                    height: 183,
-                                    decoration: ShapeDecoration(
-                                      color: const Color.fromARGB(0, 196, 196, 196),
-                                      shape: OvalBorder(),
-                                    ),
+            child: _mealPlan == null
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 190,
+                          height: 190,
+                          child: Stack(
+                            children: [
+                              Positioned(
+                                left: 0.70,
+                                top: 7,
+                                child: Container(
+                                  width: 180.59,
+                                  height: 183,
+                                  decoration: ShapeDecoration(
+                                    color: const Color.fromARGB(0, 196, 196, 196),
+                                    shape: OvalBorder(),
                                   ),
                                 ),
-                                Positioned(
-                                  left: 0,
-                                  top: 0,
-                                  child: ClipOval(
-                                    child: Image.asset(
-                                      'assets/icons/bitebudget.png',
-                                      width: 190,
-                                      height: 190,
-                                      fit: BoxFit.cover,
-                                    ),
+                              ),
+                              Positioned(
+                                left: 0,
+                                top: 0,
+                                child: ClipOval(
+                                  child: Image.asset(
+                                    'assets/icons/bitebudget.png',
+                                    width: 190,
+                                    height: 190,
+                                    fit: BoxFit.cover,
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                          SizedBox(height: 18,),
-                          Text(
-                            'Generate a meal plan!',
+                        ),
+                        SizedBox(height: 18,),
+                        Text(
+                          'Generate a meal plan!',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              color: const Color(0xFF1E232C),
+                              fontSize: 26,
+                              fontVariations: [FontVariation('wght', 700)]
+                          ),
+                        ),
+                        SizedBox(height: 8,),
+                        SizedBox(
+                          width: 300,
+                          child: Text(
+                            'You still don’t have any meal plan for this week, generate it now!',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                                color: const Color(0xFF1E232C),
-                                fontSize: 26,
-                                fontVariations: [FontVariation('wght', 700)]
+                              color: const Color(0xFF8390A1),
+                              fontSize: 15,
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w500,
+                              height: 1.50,
                             ),
                           ),
-                          SizedBox(height: 8,),
-                          SizedBox(
-                            width: 300,
-                            child: Text(
-                              'You still don’t have any meal plan for this week, generate it now!',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: const Color(0xFF8390A1),
-                                fontSize: 15,
-                                fontFamily: 'Inter',
-                                fontWeight: FontWeight.w500,
-                                height: 1.50,
-                              ),
+                        ),
+                        SizedBox(height: 12,),
+                        _buildGenerateButton(),
+                        SizedBox(height: 20,),
+                        if (!isCurrentWeek) _buildGoToCurrentWeekButton(currentMonday),
+                      ],
+                    ),
+                  )
+                : SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 80),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 30),
+                          if (!isCurrentWeek && _mealPlan != null) _buildGoToCurrentWeekButton(currentMonday),
+                          if (isCurrentWeek && todayPlan != null) ...[
+                            _buildTodayCard(todayPlan, todayIdx),
+                            _buildWeekPlanDivider(),
+                          ],
+                          if (_mealPlan != null)
+                            _buildRegenerateDeleteRow(),
+                          if (_mealPlan != null)
+                            Column(
+                              children: List.generate(7, (index) {
+                                final day = _mealPlan!.days[index];
+                                String dayName = [
+                                  'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+                                ][index];
+                                final date = weekStart.add(Duration(days: index));
+                                return _buildDayCard(day, dayName, date, index);
+                              }),
                             ),
-                          ),
-                          SizedBox(height: 12,),
-                          _buildGenerateButton(),
-                          SizedBox(height: 20,),
-                          if (!isCurrentWeek) _buildGoToCurrentWeekButton(currentMonday),
-                        ]))
-                    else
-                      Column(
-                        children: 
-                        List.generate(7, (index) {
-                          final day = _mealPlan!.days[index];
-                          String dayName = [
-                            'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-                          ][index];
-                          final date = weekStart.add(Duration(days: index));
-                          return _buildDayCard(day, dayName, date, index);
-                        }),
+                        ],
                       ),
-                  ],
-                ),
-              ),
-            ),
+                    ),
+                  ),
           ),
           Positioned(
             top: 0,
