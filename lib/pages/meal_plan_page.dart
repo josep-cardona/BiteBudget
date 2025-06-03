@@ -306,20 +306,35 @@ class _MealPlanPageState extends State<MealPlanPage> {
   Widget _buildGoToCurrentWeekButton(DateTime currentMonday) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4.0),
-      child: ElevatedButton.icon(
-        icon: const Icon(Icons.today),
-        label: const Text('Go to Current Week'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blueAccent,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Center(
+        child: TextButton(
+          onPressed: () {
+            setState(() {
+              _currentMonday = currentMonday;
+            });
+            _fetchMealPlanForWeek(currentMonday);
+          },
+          style: TextButton.styleFrom(
+            foregroundColor: const Color.fromARGB(255, 35, 35, 36), // light gray
+            padding: EdgeInsets.zero,
+            minimumSize: Size(0, 0),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            textStyle: const TextStyle(
+              decoration: TextDecoration.underline,
+              fontWeight: FontWeight.w500,
+              fontSize: 15,
+            ),
+          ),
+          child: const Text(
+            'Go to Current Week',
+            style: TextStyle(
+              decoration: TextDecoration.underline,
+              color: Color.fromARGB(255, 64, 66, 68),
+              fontWeight: FontWeight.w500,
+              fontSize: 15,
+            ),
+          ),
         ),
-        onPressed: () {
-          setState(() {
-            _currentMonday = currentMonday;
-          });
-          _fetchMealPlanForWeek(currentMonday);
-        },
       ),
     );
   }
@@ -705,8 +720,8 @@ Widget _buildRegenerateDeleteRow() {
                 padding: const EdgeInsets.only(top: 80),
                 child: Column(
                   children: [
-                    const SizedBox(height: 10),
-                    if (!isCurrentWeek) _buildGoToCurrentWeekButton(currentMonday),
+                    const SizedBox(height: 30),
+                    if (!isCurrentWeek && _mealPlan != null) _buildGoToCurrentWeekButton(currentMonday),
                     if (isCurrentWeek && todayPlan != null) ...[
                       _buildTodayCard(todayPlan, todayIdx),
                       _buildWeekPlanDivider(),
@@ -776,10 +791,13 @@ Widget _buildRegenerateDeleteRow() {
                           ),
                           SizedBox(height: 12,),
                           _buildGenerateButton(),
+                          SizedBox(height: 20,),
+                          if (!isCurrentWeek) _buildGoToCurrentWeekButton(currentMonday),
                         ]))
                     else
                       Column(
-                        children: List.generate(7, (index) {
+                        children: 
+                        List.generate(7, (index) {
                           final day = _mealPlan!.days[index];
                           String dayName = [
                             'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'

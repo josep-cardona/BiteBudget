@@ -4,6 +4,7 @@ import 'package:bitebudget/services/auth_service.dart';
 import 'package:bitebudget/services/user_service.dart';
 import 'package:bitebudget/models/user.dart';
 import 'user_info_form.dart';
+import '../bitebudget_button_style.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -220,12 +221,9 @@ class _RegisterPageState extends State<RegisterPage> {
                     height: 48,
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _registerWithEmail,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2C2C2C),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      style: biteBudgetBlackButtonStyle.copyWith(
+                        padding: MaterialStateProperty.all(const EdgeInsets.symmetric(vertical: 16)),
+                        shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
                       ),
                       child: _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
