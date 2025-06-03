@@ -29,20 +29,23 @@ class WelcomePage extends StatelessWidget {
             ),
           ),
 
-          // Centered text
-          Align(
-            alignment: Alignment.center,
+          // Slogan above the white container
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 287 + 40.0, // bottomBoxHeight + some margin
             child: Padding(
-              padding: const EdgeInsets.only(top: 40),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
                 'Eat Healthier\nEat Cheaper\nEat BiteBudget',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 40,
-                  height: 1.5,
+                  height: 1.2,
                   letterSpacing: -2.40,
                   fontVariations: [FontVariation('wght', 800)],
+                  shadows: [Shadow(blurRadius: 8, color: Colors.black26, offset: Offset(0,2))],
                 ),
               ),
             ),
