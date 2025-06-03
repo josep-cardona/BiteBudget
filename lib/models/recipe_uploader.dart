@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
-import 'package:bitebudget/models/recipe.dart';
-import 'package:bitebudget/services/database_service.dart';
+import 'package:BiteBudget/models/recipe.dart';
+import 'package:BiteBudget/services/database_service.dart';
 
 class RecipeUploader {
   static Future<void> uploadRecipesFromJson(DatabaseService_Recipe db) async {

@@ -1,6 +1,6 @@
-import 'package:bitebudget/router/routes.dart';
+import 'package:BiteBudget/router/routes.dart';
 import 'package:flutter/material.dart';
-import 'package:bitebudget/services/auth_service.dart';
+import 'package:BiteBudget/services/auth_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'register_page.dart';

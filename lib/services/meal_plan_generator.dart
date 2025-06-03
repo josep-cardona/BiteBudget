@@ -1,7 +1,7 @@
 import 'dart:math';
-import 'package:bitebudget/models/meal_plan.dart';
-import 'package:bitebudget/models/recipe.dart';
-import 'package:bitebudget/models/user.dart';
+import 'package:BiteBudget/models/meal_plan.dart';
+import 'package:BiteBudget/models/recipe.dart';
+import 'package:BiteBudget/models/user.dart';
 
 
 class FlatMealPlan {

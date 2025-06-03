@@ -1,4 +1,4 @@
-import 'package:bitebudget/router/routes.dart';
+import 'package:BiteBudget/router/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../bitebudget_button_style.dart';

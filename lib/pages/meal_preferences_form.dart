@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
-import 'package:bitebudget/router/routes.dart';
-import 'package:bitebudget/services/user_service.dart';
+import 'package:BiteBudget/router/routes.dart';
+import 'package:BiteBudget/services/user_service.dart';
 import '../bitebudget_button_style.dart';
 
 class MealPreferencesForm extends StatefulWidget {

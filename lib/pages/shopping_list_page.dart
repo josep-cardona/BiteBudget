@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:bitebudget/services/database_service_shopping_list.dart';
+import 'package:BiteBudget/services/database_service_shopping_list.dart';
 import 'package:intl/intl.dart';
 
 class ShoppingListPage extends StatefulWidget {

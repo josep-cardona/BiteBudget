@@ -1,6 +1,6 @@
 {
-    "name": "bitebudget",
-    "short_name": "bitebudget",
+    "name": "BiteBudget",
+    "short_name": "BiteBudget",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#hexcode",

@@ -1,18 +1,18 @@
-import 'package:bitebudget/services/auth_service.dart';
-import 'package:bitebudget/services/user_service.dart';
-import 'package:bitebudget/models/user.dart';
+import 'package:BiteBudget/services/auth_service.dart';
+import 'package:BiteBudget/services/user_service.dart';
+import 'package:BiteBudget/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
-import 'package:bitebudget/pages/meal_preferences_form.dart';
-import 'package:bitebudget/pages/home.dart';
+import 'package:BiteBudget/pages/meal_preferences_form.dart';
+import 'package:BiteBudget/pages/home.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:bitebudget/models/recipe_uploader.dart';
-import 'package:bitebudget/services/database_service.dart';
+import 'package:BiteBudget/models/recipe_uploader.dart';
+import 'package:BiteBudget/services/database_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../bitebudget_button_style.dart';
 
