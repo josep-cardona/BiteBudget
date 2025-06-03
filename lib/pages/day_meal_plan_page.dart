@@ -698,71 +698,75 @@ class _HorizontalRecipeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      // Remove clipBehavior here so shadow is not cut off by the card itself
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0x19053336),
-            blurRadius: 18, // More spread, softer
-            offset: Offset(0, 6), // Move shadow towards center (down)
-            spreadRadius: -6, // Negative spread to keep shadow inside, oval look
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          if (recipe.image_url != null && recipe.image_url!.isNotEmpty)
-            ClipRRect(
-              borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
-              child: Image.network(
-                recipe.image_url!,
-                width: 80,
-                height: 80,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
+    return InkWell(
+      onTap: () => Navigator.of(context).pop(recipe.name),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        // Remove clipBehavior here so shadow is not cut off by the card itself
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0x19053336),
+              blurRadius: 18, // More spread, softer
+              offset: Offset(0, 6), // Move shadow towards center (down)
+              spreadRadius: -6, // Negative spread to keep shadow inside, oval look
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (recipe.image_url != null && recipe.image_url!.isNotEmpty)
+              ClipRRect(
+                borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
+                child: Image.network(
+                  recipe.image_url!,
                   width: 80,
                   height: 80,
-                  color: Colors.grey[200],
-                  child: const Icon(Icons.fastfood, size: 32, color: Colors.grey),
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    width: 80,
+                    height: 80,
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.fastfood, size: 32, color: Colors.grey),
+                  ),
+                ),
+              )
+            else
+              Container(
+                width: 80,
+                height: 80,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF2F2F2),
+                  borderRadius: BorderRadius.horizontal(left: Radius.circular(16)),
+                ),
+                child: const Icon(Icons.fastfood, size: 32, color: Colors.grey),
+              ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(recipe.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        _BottomInfoText(text: '${recipe.calories.toStringAsFixed(0)} kcal'),
+                        const SizedBox(width: 12),
+                        _BottomInfoText(text: '${recipe.protein.toStringAsFixed(0)}g protein'),
+                        const SizedBox(width: 12),
+                        _BottomInfoText(text: '${recipe.price.toStringAsFixed(2)} €'),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            )
-          else
-            Container(
-              width: 80,
-              height: 80,
-              decoration: const BoxDecoration(
-                color: Color(0xFFF2F2F2),
-                borderRadius: BorderRadius.horizontal(left: Radius.circular(16)),
-              ),
-              child: const Icon(Icons.fastfood, size: 32, color: Colors.grey),
             ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(recipe.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      _BottomInfoText(text: '${recipe.calories.toStringAsFixed(0)} kcal'),
-                      const SizedBox(width: 12),
-                      _BottomInfoText(text: '${recipe.protein.toStringAsFixed(0)}g protein'),
-                      const SizedBox(width: 12),
-                      _BottomInfoText(text: '${recipe.price.toStringAsFixed(2)} €'),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

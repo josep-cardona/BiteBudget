@@ -505,7 +505,7 @@ Widget _buildRegenerateDeleteRow() {
       mainAxisAlignment: MainAxisAlignment.center, // 👈 This centers the buttons
       children: [
         SizedBox(
-          width: 315,
+          width: 280,
           height: 40,
           child: ElevatedButton(
             onPressed: () => _regenerateMealPlanForWeek(_currentMonday),

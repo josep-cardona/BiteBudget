@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:BiteBudget/services/auth_service.dart';
-import 'package:BiteBudget/services/user_service.dart';
-import 'package:BiteBudget/models/user.dart';
 import 'user_info_form.dart';
 import '../bitebudget_button_style.dart';
 
@@ -23,7 +21,6 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscureConfirm = true;
 
   final AuthService _authService = AuthService();
-  final UserService _userService = UserService();
 
   @override
   void dispose() {
@@ -41,13 +38,11 @@ class _RegisterPageState extends State<RegisterPage> {
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
-      if (user != null) {
-        final appUser = AppUser(
-          uid: user.uid,
-          email: user.email ?? '',
+      if (user != null && mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const UserInfoForm()),
         );
-        await _userService.createUser(appUser);
-        _navigateToUserInfo();
       }
     } catch (e) {
       _showError('Registration failed: $e');
@@ -60,26 +55,17 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() => _isLoading = true);
     try {
       final user = await _authService.signInWithGoogle();
-      if (user != null) {
-        final appUser = AppUser(
-          uid: user.uid,
-          email: user.email ?? '',
+      if (user != null && mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const UserInfoForm()),
         );
-        await _userService.createUser(appUser);
-        _navigateToUserInfo();
       }
     } catch (e) {
       _showError('Google sign-in failed: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
-  }
-
-  void _navigateToUserInfo() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const UserInfoForm()),
-    );
   }
 
   void _showError(String message) {
@@ -227,12 +213,15 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       child: _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : Text(
-                              'Register',
-                              style: GoogleFonts.inter(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
-                                color: Colors.white,
+                          : FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                'Register',
+                                style: GoogleFonts.inter(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                     ),
