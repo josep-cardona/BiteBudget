@@ -111,7 +111,7 @@ class _DayMealPlanPageState extends State<DayMealPlanPage> {
                     DayMealPlanHeader(dayIndex: widget.dayIndex, weekMonday: widget.weekMonday),
                     const SizedBox(height: 18),
                     if (_updating || _loadingRecipes)
-                      const Center(child: CircularProgressIndicator())
+                      const Center(child: CircularProgressIndicator(color: Colors.black))
                     else ...[
                       DayMealCard(
                         label: 'Breakfast',
@@ -647,7 +647,7 @@ class _RecipePickerDialogState extends State<RecipePickerDialog> {
               ),
               const SizedBox(height: 10),
               _loading
-                  ? const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()))
+                  ? const SizedBox(height: 100, child: Center(child: CircularProgressIndicator(color: Colors.black)))
                   : SizedBox(
                       height: 340,
                       width: 360,

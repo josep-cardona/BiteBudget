@@ -73,7 +73,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: _user == null
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Colors.black))
           : ListView(
               children: [
                 const SizedBox(height: 10.0),
@@ -129,7 +129,7 @@ class _HomePageState extends State<HomePage> {
             // --- Connection State Handling ---
             if (snapshot.connectionState == ConnectionState.waiting) {
               // While the Future is still running (fetching data)
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator(color: Colors.black));
             }
 
             // --- Error Handling ---
@@ -357,7 +357,7 @@ class _HomePageState extends State<HomePage> {
               // --- Connection State Handling ---
               if (snapshot.connectionState == ConnectionState.waiting) {
                 // While the Future is still running (fetching data)
-                return const Center(child: CircularProgressIndicator());
+                return const Center(child: CircularProgressIndicator(color: Colors.black));
               }
 
               // --- Error Handling ---

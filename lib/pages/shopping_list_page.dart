@@ -201,7 +201,7 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
               const SizedBox(height: 12),
               Expanded(
                 child: _loading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const Center(child: CircularProgressIndicator(color: Colors.black))
                     : _items.isEmpty
                         ? const Center(child: Text('No shopping list for this week.'))
                         : ListView.separated(

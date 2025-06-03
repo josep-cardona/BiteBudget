@@ -165,7 +165,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator(color: Colors.black));
     }
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F7),
@@ -343,7 +343,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F7),
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -390,29 +390,84 @@ class _EditProfilePageState extends State<EditProfilePage> {
             const SizedBox(height: 24),
             TextField(
               controller: _nameController,
-              decoration: InputDecoration(labelText: 'Name', border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                labelText: 'Name',
+                filled: true,
+                fillColor: Color(0xFFF5F5F5),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+                labelStyle: TextStyle(color: Colors.black),
+                floatingLabelStyle: TextStyle(color: Colors.black),
+                contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _surnameController,
-              decoration: InputDecoration(labelText: 'Surname', border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                labelText: 'Surname',
+                filled: true,
+                fillColor: Color(0xFFF5F5F5),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+                labelStyle: TextStyle(color: Colors.black),
+                floatingLabelStyle: TextStyle(color: Colors.black),
+                contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _ageController,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: 'Age', border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                labelText: 'Age',
+                filled: true,
+                fillColor: Color(0xFFF5F5F5),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+                labelStyle: TextStyle(color: Colors.black),
+                floatingLabelStyle: TextStyle(color: Colors.black),
+                contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _weightController,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: 'Weight', border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                labelText: 'Weight',
+                filled: true,
+                fillColor: Color(0xFFF5F5F5),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+                labelStyle: TextStyle(color: Colors.black),
+                floatingLabelStyle: TextStyle(color: Colors.black),
+                contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _emailController,
-              decoration: InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                labelText: 'Email',
+                filled: true,
+                fillColor: Color(0xFFF5F5F5),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+                labelStyle: TextStyle(color: Colors.black),
+                floatingLabelStyle: TextStyle(color: Colors.black),
+                contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              ),
               readOnly: true,
             ),
             const SizedBox(height: 16),
