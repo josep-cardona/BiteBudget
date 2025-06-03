@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:bitebudget/router/routes.dart';
 import 'package:bitebudget/services/user_service.dart';
+import '../bitebudget_button_style.dart';
 
 class MealPreferencesForm extends StatefulWidget {
   final Map<String, dynamic>? userInfo;
@@ -284,12 +285,7 @@ class _MealPreferencesFormState extends State<MealPreferencesForm> {
                     height: 48,
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _submitForm,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
+                      style: biteBudgetBlackButtonStyle,
                       child: _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : const Text(

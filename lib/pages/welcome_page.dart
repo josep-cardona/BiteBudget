@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'login_page.dart';
 import 'register_page.dart';
+import '../bitebudget_button_style.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
@@ -12,7 +13,6 @@ class WelcomePage extends StatelessWidget {
   backgroundColor: Colors.grey[100],
   body: LayoutBuilder(
     builder: (context, constraints) {
-      final screenHeight = constraints.maxHeight;
       final int bottomBoxHeight = 287;
 
       return Stack(
@@ -75,12 +75,9 @@ class WelcomePage extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginPage())),
-                      child: const Text('Log In', style: TextStyle(fontSize: 16),),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2C2C2C),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      child: const Text('Log In', style: TextStyle(fontSize: 16)),
+                      style: biteBudgetBlackButtonStyle.copyWith(
+                        padding: MaterialStateProperty.all(const EdgeInsets.symmetric(vertical: 16)),
                       ),
                     ),
                   ),
