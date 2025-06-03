@@ -4,6 +4,7 @@ import 'package:bitebudget/services/auth_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'register_page.dart';
+import '../bitebudget_button_style.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -201,12 +202,9 @@ class _LoginPageState extends State<LoginPage> {
                     height: 48,
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _loginWithEmail,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2C2C2C),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      style: biteBudgetBlackButtonStyle.copyWith(
+                        padding: MaterialStateProperty.all(const EdgeInsets.symmetric(vertical: 16)),
+                        shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                       ),
                       child: _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)

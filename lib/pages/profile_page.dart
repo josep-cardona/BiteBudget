@@ -14,6 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bitebudget/models/recipe_uploader.dart';
 import 'package:bitebudget/services/database_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../bitebudget_button_style.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -196,10 +197,9 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _editProfile,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                style: biteBudgetBlackButtonStyle.copyWith(
+                  padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 32, vertical: 12)),
+                  shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
                 ),
                 child: const Text('Edit Profile', style: TextStyle(fontSize: 16, color: Colors.white)),
               ),
@@ -449,10 +449,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
             const SizedBox(height: 32),
             ElevatedButton(
               onPressed: _isLoading ? null : _saveProfile,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              style: biteBudgetBlackButtonStyle.copyWith(
+                padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 32, vertical: 16)),
+                shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(32))),
               ),
               child: _isLoading
                   ? const CircularProgressIndicator(color: Colors.white)

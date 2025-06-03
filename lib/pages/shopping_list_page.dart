@@ -269,14 +269,29 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
                 child: SizedBox(
                   width: double.infinity,
-                  height: 56,
+                  height: 44,
                   child: ElevatedButton.icon(
-                    icon: const Icon(Icons.add_box_outlined, color: Colors.white),
-                    label: const Text('Add new Item', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    icon: const Icon(Icons.add_box_outlined, color: Colors.white, size: 20),
+                    label: const Text(
+                      'Add new Item',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        fontFamily: 'Inter',
+                      ),
+                    ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      textStyle: const TextStyle(fontSize: 18),
+                      backgroundColor: const Color(0xFF2C2C2C),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
+                      elevation: 2,
+                      shadowColor: Colors.black26,
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        fontFamily: 'Inter',
+                      ),
                     ),
                     onPressed: _showAddItemDialog,
                   ),
