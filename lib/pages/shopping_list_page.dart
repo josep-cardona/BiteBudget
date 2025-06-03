@@ -4,12 +4,13 @@ import 'package:bitebudget/services/database_service_shopping_list.dart';
 import 'package:intl/intl.dart';
 
 class ShoppingListPage extends StatefulWidget {
+  static final ValueNotifier<int> shoppingListUpdateNotifier = ValueNotifier<int>(0);
   const ShoppingListPage({Key? key}) : super(key: key);
 
   static Future<void> addIngredientsToShoppingList(String userId, List<List<String>> ingredients) async {
-    // Each ingredient: [name, amount, imageUrl]
     final db = DatabaseServiceShoppingList();
     await db.addIngredients(userId, ingredients);
+    shoppingListUpdateNotifier.value++;
   }
 
   @override
@@ -19,11 +20,20 @@ class ShoppingListPage extends StatefulWidget {
 class _ShoppingListPageState extends State<ShoppingListPage> {
   bool _loading = true;
   List<_ShoppingItem> _items = [];
+  late final VoidCallback _shoppingListUpdateListener;
 
   @override
   void initState() {
     super.initState();
+    _shoppingListUpdateListener = () => _loadShoppingList();
+    ShoppingListPage.shoppingListUpdateNotifier.addListener(_shoppingListUpdateListener);
     _loadShoppingList();
+  }
+
+  @override
+  void dispose() {
+    ShoppingListPage.shoppingListUpdateNotifier.removeListener(_shoppingListUpdateListener);
+    super.dispose();
   }
 
   Future<void> _loadShoppingList() async {
@@ -259,14 +269,29 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
                 child: SizedBox(
                   width: double.infinity,
-                  height: 56,
+                  height: 44,
                   child: ElevatedButton.icon(
-                    icon: const Icon(Icons.add_box_outlined, color: Colors.white),
-                    label: const Text('Add new Item', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    icon: const Icon(Icons.add_box_outlined, color: Colors.white, size: 20),
+                    label: const Text(
+                      'Add new Item',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        fontFamily: 'Inter',
+                      ),
+                    ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      textStyle: const TextStyle(fontSize: 18),
+                      backgroundColor: const Color(0xFF2C2C2C),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
+                      elevation: 2,
+                      shadowColor: Colors.black26,
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        fontFamily: 'Inter',
+                      ),
                     ),
                     onPressed: _showAddItemDialog,
                   ),

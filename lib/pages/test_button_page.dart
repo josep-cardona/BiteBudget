@@ -1,6 +1,7 @@
 import 'package:bitebudget/router/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../bitebudget_button_style.dart';
 
 class TestButtonPage extends StatefulWidget {
   const TestButtonPage({super.key});
@@ -21,6 +22,7 @@ class _TestButtonPageState extends State<TestButtonPage> {
             GoRouter.of(context).go(Routes.homePage);
           },
           child: const Text('Press Me'),
+          style: biteBudgetBlackButtonStyle,
         ),
       ),
     );
