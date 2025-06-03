@@ -391,7 +391,7 @@ class DayMealCard extends StatelessWidget {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(24),
                   ),
-                  padding: const EdgeInsets.fromLTRB(16, 26, 16, 22),
+                  padding: const EdgeInsets.fromLTRB(20, 26, 16, 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -419,29 +419,58 @@ class DayMealCard extends StatelessWidget {
                       // Centered property labels at the bottom with margin
                       if (recipe != null)
                         Padding(
-                          padding: const EdgeInsets.only(top: 10, bottom: 2),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                          padding: const EdgeInsets.only(top: 5, bottom: 0),
+                          child: Column(
+                            children: [
+                          SizedBox(height: 30,),
+                          Row(
+                            children: [
+                              Text(
+                                '${recipe!.price}€',
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 20,
+                                    fontFamily: 'Inter',
+                                    fontWeight: FontWeight.w500,
+                                    height: 1.40,
+                                ),
+                              ),
+                              SizedBox(width: 4,),
+                              Text(
+                                '/ ration',
+                                style: TextStyle(
+                                    color: Colors.black.withValues(alpha: 128) /* ✦-_text-text-secondary */,
+                                    fontSize: 12,
+                                    fontFamily: 'Inter',
+                                    fontWeight: FontWeight.w500,
+                                    height: 1.83,
+                                ),
+                            ),
+                            SizedBox(width: 55,),
+
+                            Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               _PropertyText(
                                 icon: Icons.local_fire_department,
                                 label: '${recipe!.calories.toStringAsFixed(0)} kcal',
-                                color: const Color(0xFFEF7C3A),
+                                color: Colors.black.withValues(alpha: 128),
                               ),
                               const SizedBox(width: 18),
                               _PropertyText(
                                 icon: Icons.fitness_center,
                                 label: '${recipe!.protein.toStringAsFixed(0)}g protein',
-                                color: const Color(0xFF3A7DFF),
+                                color: Colors.black.withValues(alpha: 128),
                               ),
-                              const SizedBox(width: 18),
-                              _PropertyText(
-                                icon: Icons.euro,
-                                label: '${recipe!.price.toStringAsFixed(2)} €',
-                                color: const Color(0xFF8B6C9F),
-                              ),
+
                             ],
+                            
                           ),
+
+                          ],
+                          )
+                            ],
+                          )
                         ),
                     ],
                   ),
@@ -465,14 +494,14 @@ class _PropertyText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: color, size: 18),
+        Icon(icon, color: color, size: 16),
         const SizedBox(width: 4),
         Text(
           label,
           style: TextStyle(
             color: color,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            fontSize: 12,
           ),
         ),
       ],
