@@ -52,7 +52,7 @@ Users can set their dietary preferences and budget, explore a curated library of
 ## Getting Started
 
 1. **Clone the repo:**  
-   `git clone https://github.com/yourusername/bitebudget.git`
+   `git clone https://github.com/josep-cardona/BiteBudget.git`
 2. **Install dependencies:**  
    `flutter pub get`
 3. **Run the app:**  
