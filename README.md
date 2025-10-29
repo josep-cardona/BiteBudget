@@ -1,5 +1,7 @@
 # BiteBudget
 
+<img width="1426" height="859" alt="EasyHealth Mockups _ Healthy food recipes and fitness app (Community) (1)" src="https://github.com/user-attachments/assets/de08e3e9-ea64-4cf9-8e4a-6d2bb9267ab3" />
+
 Eat Healthier, 
 
 Eat Cheaper,
