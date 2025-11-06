@@ -8,6 +8,10 @@ Eat Cheaper,
 
 Eat BiteBudget
 
+⚠️**Project Status: Archived & Non-Functional**
+
+Please note that this project is no longer actively maintained and its original backend services are offline. As a result, the application is not functional out of the box. The repository is public for portfolio and code demonstration purposes only.
+
 **BiteBudget** is a cross-platform meal planning app that helps users discover, plan, and enjoy healthy, affordable meals tailored to their dietary preferences and budget.
 
 ---
